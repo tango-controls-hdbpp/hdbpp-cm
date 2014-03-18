@@ -92,14 +92,27 @@ protected:
 
 	archiver_map_t archiverMap;
 	vector<string> archiver_list_str;
+	vector<string> archiver_list_fix;
 	vector<string> attribute_search_list_str;
 
 	Tango::DevLong	original_SetPollingPeriod;
 
 	HdbClient *mdb;
+	static map<string, string> domain_map;
+	timespec last_stat;
 public:
 	static string remove_domain(string str);
 	static void fix_tango_host(string &attr);
+	static void add_domain(string &attr);
+	static string get_only_attr_name(string str);
+	static string get_only_tango_host(string str);
+
+#ifdef _USE_FERMI_DB_RW
+private:
+	string host_rw;
+	long port_rw;
+#endif
+
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::Data Members
 
