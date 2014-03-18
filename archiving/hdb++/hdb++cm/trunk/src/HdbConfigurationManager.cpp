@@ -42,6 +42,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 
 #include <HdbConfigurationManager.h>
 #include <HdbConfigurationManagerClass.h>
+#include <netdb.h> //for getaddrinfo
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager.cpp
 
@@ -93,6 +94,7 @@ namespace HdbConfigurationManager_ns
 /*----- PROTECTED REGION ID(HdbConfigurationManager::namespace_starting) ENABLED START -----*/
 
 //	static initializations
+map<string, string> HdbConfigurationManager::domain_map;
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::namespace_starting
 
@@ -230,6 +232,8 @@ void HdbConfigurationManager::init_device()
 		}
 		string archname(*it);
 		fix_tango_host(archname);
+		DEBUG_STREAM << __func__<<": adding archiver:"<<archname;
+		archiver_list_fix.push_back(archname);
 		archiverMap.insert(make_pair(archname,tmp));
 	}
 
@@ -243,6 +247,25 @@ void HdbConfigurationManager::init_device()
 		set_state(Tango::FAULT);
 	}
 	
+#ifdef _USE_FERMI_DB_RW
+	host_rw = "";
+	Tango::Database *db = new Tango::Database();
+	try
+	{
+		Tango::DbData db_data;
+		db_data.push_back((Tango::DbDatum("Host")));
+		db_data.push_back((Tango::DbDatum("Port")));
+		db->get_property("Database",db_data);
+
+		db_data[0] >> host_rw;
+		db_data[1] >> port_rw;
+	}catch(Tango::DevFailed &e)
+	{
+		ERROR_STREAM << __FUNCTION__ << " Error reading Database property='" << e.errors[0].desc << "'";
+	}
+	delete db;
+#endif
+	clock_gettime(CLOCK_MONOTONIC,&last_stat);
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::init_device
 }
 
@@ -421,6 +444,68 @@ void HdbConfigurationManager::always_executed_hook()
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::always_executed_hook) ENABLED START -----*/
 	
 	//	code always executed before all requests
+	timespec now;
+	clock_gettime(CLOCK_MONOTONIC,&now);
+	if((now.tv_sec - last_stat.tv_sec + (double)(now.tv_nsec - last_stat.tv_nsec)/1e9) < 2.0)
+	{
+		return;
+	}
+	clock_gettime(CLOCK_MONOTONIC,&last_stat);
+	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
+	{
+		if(itmap->second.dp == NULL)
+		{
+			DEBUG_STREAM << __func__ << ": reconnecting to " << itmap->first;
+			try
+			{
+				itmap->second.dp = new Tango::DeviceProxy(itmap->first.c_str());
+			}
+			catch(Tango::DevFailed &e)
+			{
+				itmap->second.dp = NULL;
+			}
+		}
+	}
+	Tango::DevState stat = Tango::ON;
+	string status("Everything is OK");
+	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
+	{
+		Tango::DevState stat_arch;
+		Tango::DeviceAttribute Dout;
+		try
+		{
+			if(itmap->second.dp)
+			{
+				Dout = itmap->second.dp->read_attribute("State");
+				if(!Dout.is_empty())
+				{
+					Dout >> stat_arch;
+					DEBUG_STREAM << __func__<<": read state " << itmap->first;
+					if(stat_arch != Tango::ON)
+					{
+						stat = Tango::ALARM;
+						status = string("At least, one signal is faulty");
+						break;
+					}
+				}
+			}
+			else
+			{
+				stat = Tango::FAULT;
+				string status("At least one Archiver Not Responding");
+				break;
+			}
+		}
+		catch(Tango::DevFailed &e)
+		{
+			INFO_STREAM << __func__<<": unable to read State from " << itmap->first;
+			stat = Tango::FAULT;
+			status = string("At least one Archiver Not Responding");
+			break;
+		}
+	}
+	set_state(stat);
+	set_status(status);
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::always_executed_hook
 }
@@ -472,11 +557,14 @@ void HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr)
 	*attr_AttributeOKNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
 	{
-		Tango::DeviceAttribute Dout;
-		Tango::DevLong num;
-		Dout = it->second.dp->read_attribute("AttributeOKNumber");
-		Dout >> num;
-		*attr_AttributeOKNumber_read += num;
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			Dout = it->second.dp->read_attribute("AttributeOKNumber");
+			Dout >> num;
+			*attr_AttributeOKNumber_read += num;
+		}
 	}
 
 	//	Set the attribute value
@@ -500,11 +588,14 @@ void HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr)
 	*attr_AttributeNokNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
 	{
-		Tango::DeviceAttribute Dout;
-		Tango::DevLong num;
-		Dout = it->second.dp->read_attribute("AttributeNokNumber");
-		Dout >> num;
-		*attr_AttributeNokNumber_read += num;
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			Dout = it->second.dp->read_attribute("AttributeNokNumber");
+			Dout >> num;
+			*attr_AttributeNokNumber_read += num;
+		}
 	}
 
 	//	Set the attribute value
@@ -528,11 +619,14 @@ void HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr
 	*attr_AttributePendingNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
 	{
-		Tango::DeviceAttribute Dout;
-		Tango::DevLong num;
-		Dout = it->second.dp->read_attribute("AttributePendingNumber");
-		Dout >> num;
-		*attr_AttributePendingNumber_read += num;
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			Dout = it->second.dp->read_attribute("AttributePendingNumber");
+			Dout >> num;
+			*attr_AttributePendingNumber_read += num;
+		}
 	}
 
 	//	Set the attribute value
@@ -556,11 +650,14 @@ void HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr)
 	*attr_AttributeNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
 	{
-		Tango::DeviceAttribute Dout;
-		Tango::DevLong num;
-		Dout = it->second.dp->read_attribute("AttributeNumber");
-		Dout >> num;
-		*attr_AttributeNumber_read += num;
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			Dout = it->second.dp->read_attribute("AttributeNumber");
+			Dout >> num;
+			*attr_AttributeNumber_read += num;
+		}
 	}
 
 	//	Set the attribute value
@@ -602,9 +699,10 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 	Tango::DevString	w_val;
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetAttributeName) ENABLED START -----*/
-	*attr_SetAttributeName_read = CORBA::string_dup(w_val);
-	
 	string signame(w_val);
+	fix_tango_host(signame);
+	*attr_SetAttributeName_read = CORBA::string_dup(signame.c_str());
+	
 	string::size_type idx = signame.find_last_of("/");
 	if (idx==string::npos)
 		Tango::Except::throw_exception(
@@ -913,7 +1011,9 @@ void HdbConfigurationManager::write_SetArchiver(Tango::WAttribute &attr)
 	Tango::DevString	w_val;
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetArchiver) ENABLED START -----*/
-	*attr_SetArchiver_read = w_val;
+	string signame(w_val);
+	fix_tango_host(signame);
+	*attr_SetArchiver_read = CORBA::string_dup(signame.c_str());
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetArchiver
 }
@@ -979,7 +1079,6 @@ void HdbConfigurationManager::attribute_add()
 	
 	//	Add your own code
 	string signame(*attr_SetAttributeName_read);
-	fix_tango_host(signame);
 	string archname = find_archiver(signame);
 
 	archiver_map_t::iterator itmapnew = archiverMap.find(archname);
@@ -994,7 +1093,6 @@ void HdbConfigurationManager::attribute_add()
 	}
 
 	archname=string(*attr_SetArchiver_read);
-	fix_tango_host(archname);
 	itmapnew = archiverMap.find(archname);
 	if(itmapnew == archiverMap.end())
 	{
@@ -1113,10 +1211,22 @@ void HdbConfigurationManager::attribute_add()
 		Din << signame;
 		itmapnew->second.dp->command_inout("AttributeRemove",Din);*/
 	}
-	//------4: Assign to existing EventSubscriber or create new one--------
-	Tango::DeviceData Din;
-	Din << signame;
-	itmapnew->second.dp->command_inout("AttributeAdd",Din);
+	//------4: Assign to existing EventSubscriber--------------------------
+	if(itmapnew->second.dp)
+	{
+		Tango::DeviceData Din;
+		Din << signame;
+		itmapnew->second.dp->command_inout("AttributeAdd",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmapnew->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
 
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_add
 }
@@ -1149,25 +1259,19 @@ void HdbConfigurationManager::attribute_remove(Tango::DevString argin)
 	}
 	Tango::DeviceData Din;
 	Din << signame;
-	if(itmap->second.dp == NULL)
+	if(itmap->second.dp)
 	{
-		DEBUG_STREAM << __func__ << ": reconnecting to " << itmap->first;
-		try
-		{
-			itmap->second.dp = new Tango::DeviceProxy(itmap->first.c_str());
-		}
-		catch(Tango::DevFailed &e)
-		{
-			itmap->second.dp = NULL;
-			stringstream tmp;
-			tmp << "Cannot connect to  '" << itmap->first << "'";
-			Tango::Except::throw_exception( \
-						(const char*)"Connection Error", \
-						tmp.str(), \
-						(const char*)__func__, Tango::ERR);
-		}
+		itmap->second.dp->command_inout("AttributeRemove",Din);
 	}
-	itmap->second.dp->command_inout("AttributeRemove",Din);
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmap->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
 	//------Configure DB------------------------------------------------
 	int res = mdb->remove_Attr(signame);
 	if(res < 0)
@@ -1211,19 +1315,22 @@ void HdbConfigurationManager::attribute_start(Tango::DevString argin)
 					(const char*)__func__, Tango::ERR);
 	}
 
-	Tango::DeviceData Din;
-	Din << signame;
-	itmap->second.dp->command_inout("AttributeStart",Din);
-	//------Configure DB------------------------------------------------
-	int res = mdb->start_Attr(signame);
-	if(res < 0)
+	if(itmap->second.dp)
 	{
-		//... TODO
-		/*Tango::Except::throw_exception( \
-						(const char*)"Error", \
-						(const char*)"Failed to update configuration in DB", \
-						(const char*)__func__, Tango::ERR);*/
+		Tango::DeviceData Din;
+		Din << signame;
+		itmap->second.dp->command_inout("AttributeStart",Din);
 	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmap->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_start
 }
 //--------------------------------------------------------
@@ -1256,18 +1363,20 @@ void HdbConfigurationManager::attribute_stop(Tango::DevString argin)
 					(const char*)__func__, Tango::ERR);
 	}
 
-	Tango::DeviceData Din;
-	Din << signame;
-	itmap->second.dp->command_inout("AttributeStop",Din);
-	//------Configure DB------------------------------------------------
-	int res = mdb->stop_Attr(signame);
-	if(res < 0)
+	if(itmap->second.dp)
 	{
-		//... TODO
-		/*Tango::Except::throw_exception( \
-						(const char*)"Error", \
-						(const char*)"Failed to update configuration in DB", \
-						(const char*)__func__, Tango::ERR);*/
+		Tango::DeviceData Din;
+		Din << signame;
+		itmap->second.dp->command_inout("AttributeStop",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmap->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
 	}
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_stop
@@ -1286,6 +1395,59 @@ void HdbConfigurationManager::archiver_add(Tango::DevString argin)
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::archiver_add) ENABLED START -----*/
 	
 	//	Add your own code
+	string archname(argin);
+	fix_tango_host(archname);
+
+	vector<string>::iterator itlist = find(archiver_list_fix.begin(), archiver_list_fix.end(), archname);
+	archiver_map_t::iterator itmap = archiverMap.find(archname);
+
+	if(itmap != archiverMap.end() || itlist != archiver_list_fix.end())
+	{
+		stringstream tmp;
+		tmp << "Archiver '" << archname << "' already present";
+		Tango::Except::throw_exception( \
+					(const char*)"Archiver already present", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+	archiver_list_fix.push_back(archname);
+	archiver_t tmp;
+	try
+	{
+		tmp.dp = new Tango::DeviceProxy(archname);
+	}
+	catch(Tango::DevFailed &e)
+	{
+		tmp.dp = NULL;
+	}
+	archiverMap.insert(make_pair(archname,tmp));
+
+	Tango::DbData	data;
+	data.push_back(Tango::DbDatum("ArchiverList"));
+	data[0]  <<  archiver_list_fix;
+#ifndef _USE_FERMI_DB_RW
+	Tango::Database *db = new Tango::Database();
+#else
+	//save properties using host_rw e port_rw to connect to database
+	Tango::Database *db;
+	if(host_rw != "")
+		db = new Tango::Database(host_rw,port_rw);
+	else
+		db = new Tango::Database();
+	DEBUG_STREAM << __func__<<": connecting to db "<<host_rw<<":"<<port_rw;
+#endif
+	try
+	{
+		db->set_timeout_millis(10000);
+		db->put_device_property(this->get_name(), data);
+	}
+	catch(Tango::DevFailed &e)
+	{
+		stringstream o;
+		o << " Error saving properties='" << e.errors[0].desc << "'";
+		WARN_STREAM << __func__<< o.str();
+	}
+	delete db;
 
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::archiver_add
 }
@@ -1329,8 +1491,25 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
 		Tango::DeviceAttribute Dout;
-		Dout = itmap->second.dp->read_attribute("AttributeList");
-		Dout >> itmap->second.attr_list;
+		try
+		{
+			if(itmap->second.dp)
+			{
+				Dout = itmap->second.dp->read_attribute("AttributeList");
+				if(!Dout.is_empty())
+					Dout >> itmap->second.attr_list;
+			}
+			else
+			{
+				INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+				itmap->second.attr_list.clear();
+			}
+		}
+		catch(Tango::DevFailed &e)
+		{
+			INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+			itmap->second.attr_list.clear();
+		}
 		for(vector<string>::iterator itattr = itmap->second.attr_list.begin(); itattr != itmap->second.attr_list.end(); itattr++)
 		{
 			if(signame.length() != 0 && !compare_tango_names(*itattr,signame) && !compare_tango_names(signame,*itattr))	//compare -> '<' -> want *itattr==signame
@@ -1354,9 +1533,21 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 					tmp.str(), \
 					(const char*)__func__, Tango::ERR);
 	}
-	Tango::DeviceData Din;
-	Din << signame;
-	itmapnew->second.dp->command_inout("AttributeAdd",Din);
+	if(itmapnew->second.dp)
+	{
+		Tango::DeviceData Din;
+		Din << signame;
+		itmapnew->second.dp->command_inout("AttributeAdd",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmapnew->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_assign
 }
@@ -1382,8 +1573,25 @@ Tango::DevString HdbConfigurationManager::attribute_status(Tango::DevString argi
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
 		Tango::DeviceAttribute Dout;
-		Dout = itmap->second.dp->read_attribute("AttributeList");
-		Dout >> itmap->second.attr_list;
+		try
+		{
+			if(itmap->second.dp)
+			{
+				Dout = itmap->second.dp->read_attribute("AttributeList");
+				if(!Dout.is_empty())
+					Dout >> itmap->second.attr_list;
+			}
+			else
+			{
+				INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+				itmap->second.attr_list.clear();
+			}
+		}
+		catch(Tango::DevFailed &e)
+		{
+			INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+			itmap->second.attr_list.clear();
+		}
 		for(vector<string>::iterator itattr = itmap->second.attr_list.begin(); itattr != itmap->second.attr_list.end() && !found; itattr++)
 		{
 			if(signame.length() != 0 && !compare_tango_names(*itattr,signame) && !compare_tango_names(signame,*itattr))	//compare -> '<' -> want *itattr==signame
@@ -1464,13 +1672,30 @@ Tango::DevVarStringArray *HdbConfigurationManager::attribute_search(Tango::DevSt
 	vector<string> complete_list;
 	vector<string>::iterator retlist = complete_list.begin();
 	DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - 0 complete list -> size=" << complete_list.size() << endl;
-	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
 		Tango::DeviceAttribute Dout;
-		Dout = it->second.dp->read_attribute("AttributeList");
-		Dout >> it->second.attr_list;
-		DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - partial list -> size=" << it->second.attr_list.size() << endl;
-		complete_list.insert(complete_list.end(),it->second.attr_list.begin(), it->second.attr_list.end());
+		try
+		{
+			if(itmap->second.dp)
+			{
+				Dout = itmap->second.dp->read_attribute("AttributeList");
+				if(!Dout.is_empty())
+					Dout >> itmap->second.attr_list;
+			}
+			else
+			{
+				INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+				itmap->second.attr_list.clear();
+			}
+		}
+		catch(Tango::DevFailed &e)
+		{
+			INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+			itmap->second.attr_list.clear();
+		}
+		DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - partial list -> size=" << itmap->second.attr_list.size() << endl;
+		complete_list.insert(complete_list.end(),itmap->second.attr_list.begin(), itmap->second.attr_list.end());
 		/*vector<string>::iterator tmplist;
 		tmplist = copy(it->second.attr_list.begin(), it->second.attr_list.end(), complete_list.begin());
 		retlist = tmplist;*/
@@ -1524,6 +1749,54 @@ void HdbConfigurationManager::archiver_remove(Tango::DevString argin)
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::archiver_remove) ENABLED START -----*/
 	
 	//	Add your own code
+	string archname(argin);
+	fix_tango_host(archname);
+
+	vector<string>::iterator itlist = find(archiver_list_fix.begin(), archiver_list_fix.end(), archname);
+	archiver_map_t::iterator itmap = archiverMap.find(archname);
+
+	if(itmap == archiverMap.end() || itlist == archiver_list_fix.end())
+	{
+		stringstream tmp;
+		tmp << "Archiver '" << archname << "' not found";
+		Tango::Except::throw_exception( \
+					(const char*)"Archiver not found", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	//remove(archiverList.begin(), archiverList.end(), archname);
+	archiver_list_fix.erase(itlist);
+	if(itmap->second.dp != NULL)
+		delete itmap->second.dp;
+	archiverMap.erase(itmap);
+
+	Tango::DbData	data;
+	data.push_back(Tango::DbDatum("ArchiverList"));
+	data[0]  <<  archiver_list_fix;
+#ifndef _USE_FERMI_DB_RW
+	Tango::Database *db = new Tango::Database();
+#else
+	//save properties using host_rw e port_rw to connect to database
+	Tango::Database *db;
+	if(host_rw != "")
+		db = new Tango::Database(host_rw,port_rw);
+	else
+		db = new Tango::Database();
+	DEBUG_STREAM << __func__<<": connecting to db "<<host_rw<<":"<<port_rw;
+#endif
+	try
+	{
+		db->set_timeout_millis(10000);
+		db->put_device_property(this->get_name(), data);
+	}
+	catch(Tango::DevFailed &e)
+	{
+		stringstream o;
+		o << " Error saving properties='" << e.errors[0].desc << "'";
+		WARN_STREAM << __func__<< o.str();
+	}
+	delete db;
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::archiver_remove
 }
 //--------------------------------------------------------
@@ -1539,12 +1812,20 @@ void HdbConfigurationManager::reset_statistics()
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::reset_statistics) ENABLED START -----*/
 	
 	//	Add your own code
-	
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+			it->second.dp->command_inout("ResetStatistics");
+		else
+			INFO_STREAM << __func__ << ": unable to ResetStatistics on " << it->first;
+	}
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::reset_statistics
 }
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::namespace_ending) ENABLED START -----*/
 
+//=============================================================================
+//=============================================================================
 void HdbConfigurationManager::fix_tango_host(string &attr)
 {
 	std::transform(attr.begin(), attr.end(), attr.begin(), (int(*)(int))tolower);		//transform to lowercase
@@ -1555,26 +1836,142 @@ void HdbConfigurationManager::fix_tango_host(string &attr)
 		//TODO: get from device/class/global property
 		char	*env = getenv("TANGO_HOST");
 		if (env==NULL)
+		{
 			return;
+		}
 		else
 		{
 			string	s(env);
+			add_domain(s);
 			attr = string("tango://") + s + "/" + attr;
 			return;
 		}
+	}
+	string facility = get_only_tango_host(attr);
+	add_domain(facility);
+	string attr_name = get_only_attr_name(attr);
+	attr = string("tango://")+ facility + string("/") + attr_name;
+}
+//=============================================================================
+//=============================================================================
+void HdbConfigurationManager::add_domain(string &str)
+{
+	string::size_type	end1 = str.find(".");
+	if (end1 == string::npos)
+	{
+		//get host name without tango://
+		string::size_type	start = str.find("tango://");
+		if (start == string::npos)
+		{
+			start = 0;
+		}
+		else
+		{
+			start = 8;	//tango:// len
+		}
+		string::size_type	end2 = str.find(":", start);
+
+		string th = str.substr(start, end2);
+		string with_domain = str;
+
+		map<string,string>::iterator it_domain = domain_map.find(th);
+		if(it_domain != domain_map.end())
+		{
+			with_domain = it_domain->second;
+			//cout << __func__ <<": found domain in map -> " << with_domain<<endl;
+			str = with_domain;
+			return;
+		}
+
+		struct addrinfo hints;
+//		hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
+//		hints.ai_flags = AI_CANONNAME|AI_CANONIDN;
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_UNSPEC; /*either IPV4 or IPV6*/
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_CANONNAME;
+		struct addrinfo *result, *rp;
+		int ret = getaddrinfo(th.c_str(), NULL, &hints, &result);
+		if (ret != 0)
+		{
+			cout << __func__<< ": getaddrinfo error='" << gai_strerror(ret)<<"' while looking for " << th<<endl;
+			return;
+		}
+
+		for (rp = result; rp != NULL; rp = rp->ai_next)
+		{
+			with_domain = string(rp->ai_canonname) + str.substr(end2);
+			//cout << __func__ <<": found domain -> " << with_domain<<endl;
+			domain_map.insert(make_pair(th, with_domain));
+		}
+		freeaddrinfo(result); // all done with this structure
+		str = with_domain;
+		return;
+	}
+	else
+	{
+		return;
+	}
+}
+
+string HdbConfigurationManager::get_only_attr_name(string str)
+{
+	string::size_type	start = str.find("tango://");
+	if (start == string::npos)
+		return str;
+	else
+	{
+		start += 8; //	"tango://" length
+		start = str.find('/', start);
+		start++;
+		string	signame = str.substr(start);
+		return signame;
+	}
+}
+
+string HdbConfigurationManager::get_only_tango_host(string str)
+{
+	string::size_type	start = str.find("tango://");
+	if (start == string::npos)
+	{
+		return "unknown";
+	}
+	else
+	{
+		start += 8; //	"tango://" length
+		string::size_type	end = str.find('/', start);
+		string th = str.substr(start, end-start);
+		return th;
 	}
 }
 
 string HdbConfigurationManager::find_archiver(string signame)
 {
-//	DEBUG_STREAM << __func__<< ": entering with " << signame;
+	//DEBUG_STREAM << __func__<< ": entering with " << signame;
 	string archiver("");
 	fix_tango_host(signame);
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
 		Tango::DeviceAttribute Dout;
-		Dout = itmap->second.dp->read_attribute("AttributeList");
-		Dout >> itmap->second.attr_list;
+		try
+		{
+			if(itmap->second.dp)
+			{
+				Dout = itmap->second.dp->read_attribute("AttributeList");
+				if(!Dout.is_empty())
+					Dout >> itmap->second.attr_list;
+			}
+			else
+			{
+				INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+				itmap->second.attr_list.clear();
+			}
+		}
+		catch(Tango::DevFailed &e)
+		{
+			INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
+			itmap->second.attr_list.clear();
+		}
 		for(vector<string>::iterator itattr = itmap->second.attr_list.begin(); itattr != itmap->second.attr_list.end(); itattr++)
 		{
 			if(signame.length() != 0 && !compare_tango_names(*itattr,signame) && !compare_tango_names(signame,*itattr))	//compare -> '<' -> want *itattr==signame
