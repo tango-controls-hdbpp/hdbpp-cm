@@ -480,7 +480,6 @@ void HdbConfigurationManager::always_executed_hook()
 				if(!Dout.is_empty())
 				{
 					Dout >> stat_arch;
-					DEBUG_STREAM << __func__<<": read state " << itmap->first;
 					if(stat_arch != Tango::ON)
 					{
 						stat = Tango::ALARM;
@@ -736,10 +735,10 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 		tmp >> *attr_SetPeriodEvent_read;
 	} catch(Tango::DevFailed &e)
 	{
-		INFO_STREAM << "Error setting units="<<e.errors[0].desc;
+		INFO_STREAM << __func__<<": Error setting event properties="<<e.errors[0].desc;
 	} catch(CORBA::SystemException &e)
 	{
-		INFO_STREAM << "Error CORBA::SystemException setting ranges";
+		INFO_STREAM << __func__<<": Error CORBA::SystemException setting ranges";
 	}
 	catch(...)
 	{
@@ -1271,16 +1270,6 @@ void HdbConfigurationManager::attribute_remove(Tango::DevString argin)
 					(const char*)"Error", \
 					tmp.str(), \
 					(const char*)__func__, Tango::ERR);
-	}
-	//------Configure DB------------------------------------------------
-	int res = mdb->remove_Attr(signame);
-	if(res < 0)
-	{
-		//... TODO
-		Tango::Except::throw_exception( \
-						(const char*)"Error", \
-						(const char*)"Failed to remove configuration from DB", \
-						(const char*)__func__, Tango::ERR);
 	}
 
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_remove
