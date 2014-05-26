@@ -43,6 +43,7 @@ static const char *RcsId = "$Id: HdbConfigurationManagerStateMachine.cpp,v 1.2 2
 //  States  |  Description
 //================================================================
 //  ON      |  
+//  ALARM   |  At least one archiver is in ALARM
 
 
 namespace HdbConfigurationManager_ns
@@ -257,6 +258,134 @@ bool HdbConfigurationManager::is_SetArchiver_allowed(TANGO_UNUSED(Tango::AttReqT
 
 //--------------------------------------------------------
 /**
+ *	Method      : HdbConfigurationManager::is_AttributeMaxStoreTime_allowed()
+ *	Description : Execution allowed for AttributeMaxStoreTime attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeMaxStoreTime_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeMaxStoreTime attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeMaxStoreTimeStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeMaxStoreTimeStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeMinStoreTime_allowed()
+ *	Description : Execution allowed for AttributeMinStoreTime attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeMinStoreTime_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeMinStoreTime attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeMinStoreTimeStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeMinStoreTimeStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeMaxProcessingTime_allowed()
+ *	Description : Execution allowed for AttributeMaxProcessingTime attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeMaxProcessingTime_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeMaxProcessingTime attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeMaxProcessingTimeStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeMaxProcessingTimeStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeMinProcessingTime_allowed()
+ *	Description : Execution allowed for AttributeMinProcessingTime attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeMinProcessingTime_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeMinProcessingTime attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeMinProcessingTimeStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeMinProcessingTimeStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeRecordFreq_allowed()
+ *	Description : Execution allowed for AttributeRecordFreq attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeRecordFreq_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeRecordFreq attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeRecordFreqStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeRecordFreqStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeFailureFreq_allowed()
+ *	Description : Execution allowed for AttributeFailureFreq attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeFailureFreq_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeFailureFreq attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeFailureFreqStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeFailureFreqStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeStartedNumber_allowed()
+ *	Description : Execution allowed for AttributeStartedNumber attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeStartedNumber_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeStartedNumber attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeStartedNumberStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeStartedNumberStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeStoppedNumber_allowed()
+ *	Description : Execution allowed for AttributeStoppedNumber attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeStoppedNumber_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeStoppedNumber attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeStoppedNumberStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeStoppedNumberStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::is_ArchiverList_allowed()
  *	Description : Execution allowed for ArchiverList attribute
  */
@@ -268,6 +397,22 @@ bool HdbConfigurationManager::is_ArchiverList_allowed(TANGO_UNUSED(Tango::AttReq
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::ArchiverListStateAllowed_READ) ENABLED START -----*/
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverListStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_ArchiverStatus_allowed()
+ *	Description : Execution allowed for ArchiverStatus attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_ArchiverStatus_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for ArchiverStatus attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ArchiverStatusStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverStatusStateAllowed_READ
 	return true;
 }
 

@@ -1185,6 +1185,198 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(setarchiver);
 
+	//	Attribute : AttributeMaxStoreTime
+	AttributeMaxStoreTimeAttrib	*attributemaxstoretime = new AttributeMaxStoreTimeAttrib();
+	Tango::UserDefaultAttrProp	attributemaxstoretime_prop;
+	attributemaxstoretime_prop.set_description("Maximum storing time");
+	//	label	not set for AttributeMaxStoreTime
+	attributemaxstoretime_prop.set_unit("s");
+	attributemaxstoretime_prop.set_standard_unit("1");
+	attributemaxstoretime_prop.set_display_unit("s");
+	//	format	not set for AttributeMaxStoreTime
+	//	max_value	not set for AttributeMaxStoreTime
+	//	min_value	not set for AttributeMaxStoreTime
+	//	max_alarm	not set for AttributeMaxStoreTime
+	//	min_alarm	not set for AttributeMaxStoreTime
+	//	max_warning	not set for AttributeMaxStoreTime
+	//	min_warning	not set for AttributeMaxStoreTime
+	//	delta_t	not set for AttributeMaxStoreTime
+	//	delta_val	not set for AttributeMaxStoreTime
+	
+	attributemaxstoretime->set_default_properties(attributemaxstoretime_prop);
+	//	Not Polled
+	attributemaxstoretime->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributemaxstoretime);
+
+	//	Attribute : AttributeMinStoreTime
+	AttributeMinStoreTimeAttrib	*attributeminstoretime = new AttributeMinStoreTimeAttrib();
+	Tango::UserDefaultAttrProp	attributeminstoretime_prop;
+	attributeminstoretime_prop.set_description("Minimum storing time");
+	//	label	not set for AttributeMinStoreTime
+	attributeminstoretime_prop.set_unit("s");
+	attributeminstoretime_prop.set_standard_unit("1");
+	attributeminstoretime_prop.set_display_unit("s");
+	//	format	not set for AttributeMinStoreTime
+	//	max_value	not set for AttributeMinStoreTime
+	//	min_value	not set for AttributeMinStoreTime
+	//	max_alarm	not set for AttributeMinStoreTime
+	//	min_alarm	not set for AttributeMinStoreTime
+	//	max_warning	not set for AttributeMinStoreTime
+	//	min_warning	not set for AttributeMinStoreTime
+	//	delta_t	not set for AttributeMinStoreTime
+	//	delta_val	not set for AttributeMinStoreTime
+	
+	attributeminstoretime->set_default_properties(attributeminstoretime_prop);
+	//	Not Polled
+	attributeminstoretime->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributeminstoretime);
+
+	//	Attribute : AttributeMaxProcessingTime
+	AttributeMaxProcessingTimeAttrib	*attributemaxprocessingtime = new AttributeMaxProcessingTimeAttrib();
+	Tango::UserDefaultAttrProp	attributemaxprocessingtime_prop;
+	attributemaxprocessingtime_prop.set_description("Maximum processing (from event reception to storage) time");
+	//	label	not set for AttributeMaxProcessingTime
+	attributemaxprocessingtime_prop.set_unit("s");
+	attributemaxprocessingtime_prop.set_standard_unit("1");
+	attributemaxprocessingtime_prop.set_display_unit("s");
+	//	format	not set for AttributeMaxProcessingTime
+	//	max_value	not set for AttributeMaxProcessingTime
+	//	min_value	not set for AttributeMaxProcessingTime
+	//	max_alarm	not set for AttributeMaxProcessingTime
+	//	min_alarm	not set for AttributeMaxProcessingTime
+	//	max_warning	not set for AttributeMaxProcessingTime
+	//	min_warning	not set for AttributeMaxProcessingTime
+	//	delta_t	not set for AttributeMaxProcessingTime
+	//	delta_val	not set for AttributeMaxProcessingTime
+	
+	attributemaxprocessingtime->set_default_properties(attributemaxprocessingtime_prop);
+	//	Not Polled
+	attributemaxprocessingtime->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributemaxprocessingtime);
+
+	//	Attribute : AttributeMinProcessingTime
+	AttributeMinProcessingTimeAttrib	*attributeminprocessingtime = new AttributeMinProcessingTimeAttrib();
+	Tango::UserDefaultAttrProp	attributeminprocessingtime_prop;
+	attributeminprocessingtime_prop.set_description("Minimum processing (from event reception to storage) time");
+	//	label	not set for AttributeMinProcessingTime
+	attributeminprocessingtime_prop.set_unit("s");
+	attributeminprocessingtime_prop.set_standard_unit("1");
+	attributeminprocessingtime_prop.set_display_unit("s");
+	//	format	not set for AttributeMinProcessingTime
+	//	max_value	not set for AttributeMinProcessingTime
+	//	min_value	not set for AttributeMinProcessingTime
+	//	max_alarm	not set for AttributeMinProcessingTime
+	//	min_alarm	not set for AttributeMinProcessingTime
+	//	max_warning	not set for AttributeMinProcessingTime
+	//	min_warning	not set for AttributeMinProcessingTime
+	//	delta_t	not set for AttributeMinProcessingTime
+	//	delta_val	not set for AttributeMinProcessingTime
+	
+	attributeminprocessingtime->set_default_properties(attributeminprocessingtime_prop);
+	//	Not Polled
+	attributeminprocessingtime->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributeminprocessingtime);
+
+	//	Attribute : AttributeRecordFreq
+	AttributeRecordFreqAttrib	*attributerecordfreq = new AttributeRecordFreqAttrib();
+	Tango::UserDefaultAttrProp	attributerecordfreq_prop;
+	attributerecordfreq_prop.set_description("Record frequency");
+	//	label	not set for AttributeRecordFreq
+	attributerecordfreq_prop.set_unit("ev/period");
+	attributerecordfreq_prop.set_standard_unit("1");
+	attributerecordfreq_prop.set_display_unit("ev/period");
+	//	format	not set for AttributeRecordFreq
+	//	max_value	not set for AttributeRecordFreq
+	//	min_value	not set for AttributeRecordFreq
+	//	max_alarm	not set for AttributeRecordFreq
+	//	min_alarm	not set for AttributeRecordFreq
+	//	max_warning	not set for AttributeRecordFreq
+	//	min_warning	not set for AttributeRecordFreq
+	//	delta_t	not set for AttributeRecordFreq
+	//	delta_val	not set for AttributeRecordFreq
+	
+	attributerecordfreq->set_default_properties(attributerecordfreq_prop);
+	//	Not Polled
+	attributerecordfreq->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributerecordfreq);
+
+	//	Attribute : AttributeFailureFreq
+	AttributeFailureFreqAttrib	*attributefailurefreq = new AttributeFailureFreqAttrib();
+	Tango::UserDefaultAttrProp	attributefailurefreq_prop;
+	attributefailurefreq_prop.set_description("Failure frequency");
+	//	label	not set for AttributeFailureFreq
+	attributefailurefreq_prop.set_unit("ev/period");
+	attributefailurefreq_prop.set_standard_unit("1");
+	attributefailurefreq_prop.set_display_unit("ev/period");
+	//	format	not set for AttributeFailureFreq
+	//	max_value	not set for AttributeFailureFreq
+	//	min_value	not set for AttributeFailureFreq
+	//	max_alarm	not set for AttributeFailureFreq
+	//	min_alarm	not set for AttributeFailureFreq
+	//	max_warning	not set for AttributeFailureFreq
+	//	min_warning	not set for AttributeFailureFreq
+	//	delta_t	not set for AttributeFailureFreq
+	//	delta_val	not set for AttributeFailureFreq
+	
+	attributefailurefreq->set_default_properties(attributefailurefreq_prop);
+	//	Not Polled
+	attributefailurefreq->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributefailurefreq);
+
+	//	Attribute : AttributeStartedNumber
+	AttributeStartedNumberAttrib	*attributestartednumber = new AttributeStartedNumberAttrib();
+	Tango::UserDefaultAttrProp	attributestartednumber_prop;
+	attributestartednumber_prop.set_description("Number of archived attributes started");
+	//	label	not set for AttributeStartedNumber
+	//	unit	not set for AttributeStartedNumber
+	//	standard_unit	not set for AttributeStartedNumber
+	//	display_unit	not set for AttributeStartedNumber
+	//	format	not set for AttributeStartedNumber
+	//	max_value	not set for AttributeStartedNumber
+	//	min_value	not set for AttributeStartedNumber
+	//	max_alarm	not set for AttributeStartedNumber
+	//	min_alarm	not set for AttributeStartedNumber
+	//	max_warning	not set for AttributeStartedNumber
+	//	min_warning	not set for AttributeStartedNumber
+	//	delta_t	not set for AttributeStartedNumber
+	//	delta_val	not set for AttributeStartedNumber
+	
+	attributestartednumber->set_default_properties(attributestartednumber_prop);
+	//	Not Polled
+	attributestartednumber->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributestartednumber);
+
+	//	Attribute : AttributeStoppedNumber
+	AttributeStoppedNumberAttrib	*attributestoppednumber = new AttributeStoppedNumberAttrib();
+	Tango::UserDefaultAttrProp	attributestoppednumber_prop;
+	attributestoppednumber_prop.set_description("Number of archived attributes stopped");
+	//	label	not set for AttributeStoppedNumber
+	//	unit	not set for AttributeStoppedNumber
+	//	standard_unit	not set for AttributeStoppedNumber
+	//	display_unit	not set for AttributeStoppedNumber
+	//	format	not set for AttributeStoppedNumber
+	//	max_value	not set for AttributeStoppedNumber
+	//	min_value	not set for AttributeStoppedNumber
+	//	max_alarm	not set for AttributeStoppedNumber
+	//	min_alarm	not set for AttributeStoppedNumber
+	//	max_warning	not set for AttributeStoppedNumber
+	//	min_warning	not set for AttributeStoppedNumber
+	//	delta_t	not set for AttributeStoppedNumber
+	//	delta_val	not set for AttributeStoppedNumber
+	
+	attributestoppednumber->set_default_properties(attributestoppednumber_prop);
+	//	Not Polled
+	attributestoppednumber->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributestoppednumber);
+
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
 	Tango::UserDefaultAttrProp	archiverlist_prop;
@@ -1208,6 +1400,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	archiverlist->set_disp_level(Tango::OPERATOR);
 	//	Not Memorized
 	att_list.push_back(archiverlist);
+
+	//	Attribute : ArchiverStatus
+	ArchiverStatusAttrib	*archiverstatus = new ArchiverStatusAttrib();
+	Tango::UserDefaultAttrProp	archiverstatus_prop;
+	//	description	not set for ArchiverStatus
+	//	label	not set for ArchiverStatus
+	//	unit	not set for ArchiverStatus
+	//	standard_unit	not set for ArchiverStatus
+	//	display_unit	not set for ArchiverStatus
+	//	format	not set for ArchiverStatus
+	//	max_value	not set for ArchiverStatus
+	//	min_value	not set for ArchiverStatus
+	//	max_alarm	not set for ArchiverStatus
+	//	min_alarm	not set for ArchiverStatus
+	//	max_warning	not set for ArchiverStatus
+	//	min_warning	not set for ArchiverStatus
+	//	delta_t	not set for ArchiverStatus
+	//	delta_val	not set for ArchiverStatus
+	
+	archiverstatus->set_default_properties(archiverstatus_prop);
+	//	Not Polled
+	archiverstatus->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(archiverstatus);
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());

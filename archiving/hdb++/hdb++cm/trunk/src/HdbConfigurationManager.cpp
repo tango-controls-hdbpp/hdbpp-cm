@@ -75,18 +75,27 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //================================================================
 //  Attributes managed are:
 //================================================================
-//  AttributeOKNumber       |  Tango::DevLong	Scalar
-//  AttributeNokNumber      |  Tango::DevLong	Scalar
-//  AttributePendingNumber  |  Tango::DevLong	Scalar
-//  AttributeNumber         |  Tango::DevLong	Scalar
-//  SetAttributeName        |  Tango::DevString	Scalar
-//  SetPollingPeriod        |  Tango::DevLong	Scalar
-//  SetAbsoluteEvent        |  Tango::DevDouble	Scalar
-//  SetRelativeEvent        |  Tango::DevDouble	Scalar
-//  SetPeriodEvent          |  Tango::DevLong	Scalar
-//  SetCodePushedEvent      |  Tango::DevBoolean	Scalar
-//  SetArchiver             |  Tango::DevString	Scalar
-//  ArchiverList            |  Tango::DevString	Spectrum  ( max = 1000)
+//  AttributeOKNumber           |  Tango::DevLong	Scalar
+//  AttributeNokNumber          |  Tango::DevLong	Scalar
+//  AttributePendingNumber      |  Tango::DevLong	Scalar
+//  AttributeNumber             |  Tango::DevLong	Scalar
+//  SetAttributeName            |  Tango::DevString	Scalar
+//  SetPollingPeriod            |  Tango::DevLong	Scalar
+//  SetAbsoluteEvent            |  Tango::DevDouble	Scalar
+//  SetRelativeEvent            |  Tango::DevDouble	Scalar
+//  SetPeriodEvent              |  Tango::DevLong	Scalar
+//  SetCodePushedEvent          |  Tango::DevBoolean	Scalar
+//  SetArchiver                 |  Tango::DevString	Scalar
+//  AttributeMaxStoreTime       |  Tango::DevDouble	Scalar
+//  AttributeMinStoreTime       |  Tango::DevDouble	Scalar
+//  AttributeMaxProcessingTime  |  Tango::DevDouble	Scalar
+//  AttributeMinProcessingTime  |  Tango::DevDouble	Scalar
+//  AttributeRecordFreq         |  Tango::DevDouble	Scalar
+//  AttributeFailureFreq        |  Tango::DevDouble	Scalar
+//  AttributeStartedNumber      |  Tango::DevLong	Scalar
+//  AttributeStoppedNumber      |  Tango::DevLong	Scalar
+//  ArchiverList                |  Tango::DevString	Spectrum  ( max = 1000)
+//  ArchiverStatus              |  Tango::DevString	Spectrum  ( max = 1000)
 //================================================================
 
 namespace HdbConfigurationManager_ns
@@ -168,6 +177,14 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_SetPeriodEvent_read;
 	delete[] attr_SetCodePushedEvent_read;
 	delete[] attr_SetArchiver_read;
+	delete[] attr_AttributeMaxStoreTime_read;
+	delete[] attr_AttributeMinStoreTime_read;
+	delete[] attr_AttributeMaxProcessingTime_read;
+	delete[] attr_AttributeMinProcessingTime_read;
+	delete[] attr_AttributeRecordFreq_read;
+	delete[] attr_AttributeFailureFreq_read;
+	delete[] attr_AttributeStartedNumber_read;
+	delete[] attr_AttributeStoppedNumber_read;
 }
 
 //--------------------------------------------------------
@@ -183,6 +200,7 @@ void HdbConfigurationManager::init_device()
 	
 	//	Initialization before get_device_property() call
 	attr_ArchiverList_read = NULL;
+	attr_ArchiverStatus_read = NULL;
 /*	attr_AddCodePushedEvent_read = &attr_AddCodePushedEvent_write;
 	attr_AddPollingPeriod_read = &attr_AddPollingPeriod_write;
 	attr_AddAbsoluteEvent_read = &attr_AddAbsoluteEvent_write;
@@ -208,6 +226,14 @@ void HdbConfigurationManager::init_device()
 	attr_SetPeriodEvent_read = new Tango::DevLong[1];
 	attr_SetCodePushedEvent_read = new Tango::DevBoolean[1];
 	attr_SetArchiver_read = new Tango::DevString[1];
+	attr_AttributeMaxStoreTime_read = new Tango::DevDouble[1];
+	attr_AttributeMinStoreTime_read = new Tango::DevDouble[1];
+	attr_AttributeMaxProcessingTime_read = new Tango::DevDouble[1];
+	attr_AttributeMinProcessingTime_read = new Tango::DevDouble[1];
+	attr_AttributeRecordFreq_read = new Tango::DevDouble[1];
+	attr_AttributeFailureFreq_read = new Tango::DevDouble[1];
+	attr_AttributeStartedNumber_read = new Tango::DevLong[1];
+	attr_AttributeStoppedNumber_read = new Tango::DevLong[1];
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::init_device) ENABLED START -----*/
 	
@@ -432,7 +458,7 @@ void HdbConfigurationManager::check_mandatory_property(Tango::DbDatum &class_pro
 //--------------------------------------------------------
 void HdbConfigurationManager::always_executed_hook()
 {
-//	INFO_STREAM << "HdbConfigurationManager::always_executed_hook()  " << device_name << endl;
+	INFO_STREAM << "HdbConfigurationManager::always_executed_hook()  " << device_name << endl;
 	if (mandatoryNotDefined)
 	{
 		string	status(get_status());
@@ -451,6 +477,7 @@ void HdbConfigurationManager::always_executed_hook()
 		return;
 	}
 	clock_gettime(CLOCK_MONOTONIC,&last_stat);
+	bool archiver_fault = false;
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
 		if(itmap->second.dp == NULL)
@@ -465,6 +492,29 @@ void HdbConfigurationManager::always_executed_hook()
 				itmap->second.dp = NULL;
 			}
 		}
+		else
+        {
+			try
+			{
+				if (!itmap->second.dp->ping())
+				{
+					INFO_STREAM << "HdbConfigurationManager::always_executed_hook() Archiver " << itmap->first << " PING NOK" << endl;
+					archiver_fault = true;
+				}
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << "HdbConfigurationManager::always_executed_hook() Archiver " << itmap->first << " Exception" << endl;
+				archiver_fault = true;
+			}
+        }
+	}
+	if(archiver_fault)
+	{
+		DEBUG_STREAM << __func__<<": setting state FAULT "<<endl;
+		set_state(Tango::FAULT);
+		set_status("At least one Archiver Not Responding");
+		return;
 	}
 	Tango::DevState stat = Tango::ON;
 	string status("Everything is OK");
@@ -483,7 +533,7 @@ void HdbConfigurationManager::always_executed_hook()
 					if(stat_arch != Tango::ON)
 					{
 						stat = Tango::ALARM;
-						status = string("At least, one signal is faulty");
+						status = string("At least one signal is faulty");
 						break;
 					}
 				}
@@ -517,7 +567,7 @@ void HdbConfigurationManager::always_executed_hook()
 //--------------------------------------------------------
 void HdbConfigurationManager::read_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_attr_hardware(vector<long> &attr_list) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_attr_hardware) ENABLED START -----*/
 	
 	//	Add your own code
@@ -532,7 +582,7 @@ void HdbConfigurationManager::read_attr_hardware(TANGO_UNUSED(vector<long> &attr
 //--------------------------------------------------------
 void HdbConfigurationManager::write_attr_hardware(TANGO_UNUSED(vector<long> &attr_list))
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::write_attr_hardware(vector<long> &attr_list) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::write_attr_hardware(vector<long> &attr_list) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_attr_hardware) ENABLED START -----*/
 	
 	//	Add your own code
@@ -551,7 +601,7 @@ void HdbConfigurationManager::write_attr_hardware(TANGO_UNUSED(vector<long> &att
 //--------------------------------------------------------
 void HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeOKNumber) ENABLED START -----*/
 	*attr_AttributeOKNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
@@ -560,9 +610,16 @@ void HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr)
 		{
 			Tango::DeviceAttribute Dout;
 			Tango::DevLong num;
-			Dout = it->second.dp->read_attribute("AttributeOKNumber");
-			Dout >> num;
-			*attr_AttributeOKNumber_read += num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeOKNumber");
+				Dout >> num;
+				*attr_AttributeOKNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
 		}
 	}
 
@@ -582,7 +639,7 @@ void HdbConfigurationManager::read_AttributeOKNumber(Tango::Attribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeNokNumber) ENABLED START -----*/
 	*attr_AttributeNokNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
@@ -591,9 +648,16 @@ void HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr)
 		{
 			Tango::DeviceAttribute Dout;
 			Tango::DevLong num;
-			Dout = it->second.dp->read_attribute("AttributeNokNumber");
-			Dout >> num;
-			*attr_AttributeNokNumber_read += num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeNokNumber");
+				Dout >> num;
+				*attr_AttributeNokNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
 		}
 	}
 
@@ -613,7 +677,7 @@ void HdbConfigurationManager::read_AttributeNokNumber(Tango::Attribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributePendingNumber) ENABLED START -----*/
 	*attr_AttributePendingNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
@@ -622,9 +686,16 @@ void HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr
 		{
 			Tango::DeviceAttribute Dout;
 			Tango::DevLong num;
-			Dout = it->second.dp->read_attribute("AttributePendingNumber");
-			Dout >> num;
-			*attr_AttributePendingNumber_read += num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributePendingNumber");
+				Dout >> num;
+				*attr_AttributePendingNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
 		}
 	}
 
@@ -644,7 +715,7 @@ void HdbConfigurationManager::read_AttributePendingNumber(Tango::Attribute &attr
 //--------------------------------------------------------
 void HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeNumber) ENABLED START -----*/
 	*attr_AttributeNumber_read = 0;
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
@@ -653,9 +724,16 @@ void HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr)
 		{
 			Tango::DeviceAttribute Dout;
 			Tango::DevLong num;
-			Dout = it->second.dp->read_attribute("AttributeNumber");
-			Dout >> num;
-			*attr_AttributeNumber_read += num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeNumber");
+				Dout >> num;
+				*attr_AttributeNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
 		}
 	}
 
@@ -675,7 +753,7 @@ void HdbConfigurationManager::read_AttributeNumber(Tango::Attribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetAttributeName(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetAttributeName(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetAttributeName(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetAttributeName) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetAttributeName_read);
@@ -700,7 +778,8 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetAttributeName) ENABLED START -----*/
 	string signame(w_val);
 	fix_tango_host(signame);
-	*attr_SetAttributeName_read = CORBA::string_dup(signame.c_str());
+	//remove white spaces:
+	signame.erase (std::remove (signame.begin(), signame.end(), ' '), signame.end());
 	
 	string::size_type idx = signame.find_last_of("/");
 	if (idx==string::npos)
@@ -725,25 +804,47 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 		stringstream tmp;
 		tmp << attr_info_ex.events.arch_event.archive_rel_change;
 		tmp >> *attr_SetRelativeEvent_read;
+		if(tmp.fail())
+			*attr_SetRelativeEvent_read = 0;
 		tmp.str("");
 		tmp.clear(); // Clear state flags.
 		tmp << attr_info_ex.events.arch_event.archive_abs_change;
 		tmp >> *attr_SetAbsoluteEvent_read;
+		if(tmp.fail())
+			*attr_SetAbsoluteEvent_read = 0;
 		tmp.str("");
 		tmp.clear(); // Clear state flags.
 		tmp << attr_info_ex.events.arch_event.archive_period;
 		tmp >> *attr_SetPeriodEvent_read;
+		if(tmp.fail())
+			*attr_SetPeriodEvent_read = -1;
 	} catch(Tango::DevFailed &e)
 	{
+		delete dp;
 		INFO_STREAM << __func__<<": Error setting event properties="<<e.errors[0].desc;
+		Tango::Except::re_throw_exception(e,
+					(const char *)"Error",
+					"Error in signal name",
+					(const char *)__func__);
 	} catch(CORBA::SystemException &e)
 	{
+		delete dp;
 		INFO_STREAM << __func__<<": Error CORBA::SystemException setting ranges";
+		Tango::Except::throw_exception(
+					(const char *)"Error",
+					"Error in signal name",
+					(const char *)__func__);
 	}
 	catch(...)
 	{
+		delete dp;
+		Tango::Except::throw_exception(
+					(const char *)"Error",
+					"Error in signal name",
+					(const char *)__func__);
 	}
 	delete dp;
+	*attr_SetAttributeName_read = CORBA::string_dup(signame.c_str());
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetAttributeName
 }
 //--------------------------------------------------------
@@ -757,7 +858,7 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetPollingPeriod(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetPollingPeriod(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetPollingPeriod(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetPollingPeriod) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetPollingPeriod_read);
@@ -803,7 +904,7 @@ void HdbConfigurationManager::write_SetPollingPeriod(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetAbsoluteEvent(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetAbsoluteEvent(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetAbsoluteEvent(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetAbsoluteEvent) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetAbsoluteEvent_read);
@@ -849,7 +950,7 @@ void HdbConfigurationManager::write_SetAbsoluteEvent(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetRelativeEvent(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetRelativeEvent(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetRelativeEvent(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetRelativeEvent) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetRelativeEvent_read);
@@ -895,7 +996,7 @@ void HdbConfigurationManager::write_SetRelativeEvent(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetPeriodEvent(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetPeriodEvent(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetPeriodEvent(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetPeriodEvent) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetPeriodEvent_read);
@@ -941,7 +1042,7 @@ void HdbConfigurationManager::write_SetPeriodEvent(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetCodePushedEvent(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetCodePushedEvent(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetCodePushedEvent(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetCodePushedEvent) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetCodePushedEvent_read);
@@ -987,7 +1088,7 @@ void HdbConfigurationManager::write_SetCodePushedEvent(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_SetArchiver(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_SetArchiver(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetArchiver(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetArchiver) ENABLED START -----*/
 	//	Set the attribute value
 	attr.set_value(attr_SetArchiver_read);
@@ -1018,6 +1119,312 @@ void HdbConfigurationManager::write_SetArchiver(Tango::WAttribute &attr)
 }
 //--------------------------------------------------------
 /**
+ *	Read attribute AttributeMaxStoreTime related method
+ *	Description: Maximum storing time
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeMaxStoreTime(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeMaxStoreTime(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeMaxStoreTime) ENABLED START -----*/
+	*attr_AttributeMaxStoreTime_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble val;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeMaxStoreTime");
+				Dout >> val;
+				if(val > *attr_AttributeMaxStoreTime_read && val != -1)
+					*attr_AttributeMaxStoreTime_read = val;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeMaxStoreTime_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeMaxStoreTime
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeMinStoreTime related method
+ *	Description: Minimum storing time
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeMinStoreTime(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeMinStoreTime(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeMinStoreTime) ENABLED START -----*/
+	*attr_AttributeMinStoreTime_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble val;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeMinStoreTime");
+				Dout >> val;
+				if(*attr_AttributeMinStoreTime_read == 0)
+					*attr_AttributeMinStoreTime_read = val;
+				if(val < *attr_AttributeMinStoreTime_read && val != -1)
+					*attr_AttributeMinStoreTime_read = val;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeMinStoreTime_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeMinStoreTime
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeMaxProcessingTime related method
+ *	Description: Maximum processing (from event reception to storage) time
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeMaxProcessingTime(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeMaxProcessingTime(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeMaxProcessingTime) ENABLED START -----*/
+	*attr_AttributeMaxProcessingTime_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble val;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeMaxProcessingTime");
+				Dout >> val;
+				if(val > *attr_AttributeMaxProcessingTime_read && val != -1)
+					*attr_AttributeMaxProcessingTime_read = val;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeMaxProcessingTime_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeMaxProcessingTime
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeMinProcessingTime related method
+ *	Description: Minimum processing (from event reception to storage) time
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeMinProcessingTime(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeMinProcessingTime(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeMinProcessingTime) ENABLED START -----*/
+	*attr_AttributeMinProcessingTime_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble val;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeMinProcessingTime");
+				Dout >> val;
+				if(*attr_AttributeMinProcessingTime_read == 0)
+					*attr_AttributeMinProcessingTime_read = val;
+				else if(val < *attr_AttributeMinProcessingTime_read && val != -1)
+					*attr_AttributeMinProcessingTime_read = val;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeMinProcessingTime_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeMinProcessingTime
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeRecordFreq related method
+ *	Description: Record frequency
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeRecordFreq(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeRecordFreq(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeRecordFreq) ENABLED START -----*/
+	*attr_AttributeRecordFreq_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			DEBUG_STREAM << "HdbConfigurationManager::read_AttributeRecordFreq(): going to read attr from "<<it->first << " attr_AttributeRecordFreq_read="<<*attr_AttributeRecordFreq_read<< endl;
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeRecordFreq");
+				Dout >> num;
+				*attr_AttributeRecordFreq_read += num;
+				DEBUG_STREAM << "HdbConfigurationManager::read_AttributeRecordFreq(): after read attr from "<<it->first << " attr_AttributeRecordFreq_read="<<*attr_AttributeRecordFreq_read<< endl;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeRecordFreq_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeRecordFreq
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeFailureFreq related method
+ *	Description: Failure frequency
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeFailureFreq(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeFailureFreq(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeFailureFreq) ENABLED START -----*/
+	*attr_AttributeFailureFreq_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevDouble num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeFailureFreq");
+				Dout >> num;
+				*attr_AttributeFailureFreq_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeFailureFreq_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeFailureFreq
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeStartedNumber related method
+ *	Description: Number of archived attributes started
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeStartedNumber(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeStartedNumber(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeStartedNumber) ENABLED START -----*/
+	*attr_AttributeStartedNumber_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeStartedNumber");
+				Dout >> num;
+				*attr_AttributeStartedNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeStartedNumber_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeStartedNumber
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeStoppedNumber related method
+ *	Description: Number of archived attributes stopped
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeStoppedNumber(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeStoppedNumber(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeStoppedNumber) ENABLED START -----*/
+	*attr_AttributeStoppedNumber_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeStoppedNumber");
+				Dout >> num;
+				*attr_AttributeStoppedNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeStoppedNumber_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeStoppedNumber
+}
+//--------------------------------------------------------
+/**
  *	Read attribute ArchiverList related method
  *	Description: 
  *
@@ -1027,7 +1434,7 @@ void HdbConfigurationManager::write_SetArchiver(Tango::WAttribute &attr)
 //--------------------------------------------------------
 void HdbConfigurationManager::read_ArchiverList(Tango::Attribute &attr)
 {
-//	DEBUG_STREAM << "HdbConfigurationManager::read_ArchiverList(Tango::Attribute &attr) entering... " << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::read_ArchiverList(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_ArchiverList) ENABLED START -----*/
 	//	Set the attribute value
 	archiver_list_str.clear();
@@ -1046,6 +1453,73 @@ void HdbConfigurationManager::read_ArchiverList(Tango::Attribute &attr)
 	attr.set_value(attr_ArchiverList_read, archiver_list_str.size());
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverList
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute ArchiverStatus related method
+ *	Description: 
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Spectrum max = 1000
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_ArchiverStatus(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_ArchiverStatus(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_ArchiverStatus) ENABLED START -----*/
+	//	Set the attribute value
+	archiver_status_str.clear();
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		stringstream arch_status;
+		arch_status << it->first;
+		if(it->second.dp)
+		{
+			try
+			{
+				Tango::DeviceAttribute Dout_nok;
+				Tango::DevLong num_nok;
+				Dout_nok = it->second.dp->read_attribute("AttributeNokNumber");
+				Dout_nok >> num_nok;
+				Tango::DeviceAttribute Dout_tot;
+				Tango::DevLong num_tot;
+				Dout_tot = it->second.dp->read_attribute("AttributeNumber");
+				Dout_tot >> num_tot;
+				Tango::DeviceAttribute Dout_pend;
+				Tango::DevLong num_pend;
+				Dout_pend = it->second.dp->read_attribute("AttributePendingNumber");
+				Dout_pend >> num_pend;
+				Tango::DeviceAttribute Dout_state;
+				Tango::DevState stat;
+				Dout_state = it->second.dp->read_attribute("State");
+				Dout_state >> stat;
+				if(stat == Tango::ON)
+					arch_status << "\tON\t";
+				else if(stat == Tango::ALARM)
+					arch_status << "\tALARM\t";
+				else if(stat == Tango::FAULT)
+					arch_status << "\tFAULT\t";
+				arch_status << "\tNOK="<<num_nok<<"/"<<num_tot<<"\tPending="<<num_pend;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				arch_status << "\tError='"<<e.errors[0].desc<<"'";
+			}
+		}
+		else
+		{
+			arch_status << "\tNOT Connected";
+		}
+		archiver_status_str.push_back(arch_status.str());
+	}
+	if(attr_ArchiverStatus_read != NULL)
+		delete [] attr_ArchiverStatus_read;
+	attr_ArchiverStatus_read = new Tango::DevString[archiver_status_str.size()];
+	for (unsigned int i=0 ; i<archiver_status_str.size() ; i++)
+		attr_ArchiverStatus_read[i] = (char *)archiver_status_str[i].c_str();
+	attr.set_value(attr_ArchiverStatus_read, archiver_status_str.size());
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverStatus
 }
 
 //--------------------------------------------------------
@@ -1167,10 +1641,10 @@ void HdbConfigurationManager::attribute_add()
 				changed=true;
 				DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - setting archive_abs_change=" << tmp.str() << endl;
 			}
-			if(*attr_SetPeriodEvent_read != 0)
+			if(*attr_SetPeriodEvent_read > 0)
 			{
 				stringstream tmp;
-				tmp << *attr_SetAbsoluteEvent_read;
+				tmp << *attr_SetPeriodEvent_read;
 				it->events.arch_event.archive_period = tmp.str();
 				changed=true;
 				DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - setting archive_period=" << tmp.str() << endl;
