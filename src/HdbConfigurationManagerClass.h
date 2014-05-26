@@ -216,6 +216,110 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_SetArchiver_allowed(ty);}
 };
 
+//	Attribute AttributeMaxStoreTime class definition
+class AttributeMaxStoreTimeAttrib: public Tango::Attr
+{
+public:
+	AttributeMaxStoreTimeAttrib():Attr("AttributeMaxStoreTime",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeMaxStoreTimeAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeMaxStoreTime(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMaxStoreTime_allowed(ty);}
+};
+
+//	Attribute AttributeMinStoreTime class definition
+class AttributeMinStoreTimeAttrib: public Tango::Attr
+{
+public:
+	AttributeMinStoreTimeAttrib():Attr("AttributeMinStoreTime",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeMinStoreTimeAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeMinStoreTime(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMinStoreTime_allowed(ty);}
+};
+
+//	Attribute AttributeMaxProcessingTime class definition
+class AttributeMaxProcessingTimeAttrib: public Tango::Attr
+{
+public:
+	AttributeMaxProcessingTimeAttrib():Attr("AttributeMaxProcessingTime",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeMaxProcessingTimeAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeMaxProcessingTime(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMaxProcessingTime_allowed(ty);}
+};
+
+//	Attribute AttributeMinProcessingTime class definition
+class AttributeMinProcessingTimeAttrib: public Tango::Attr
+{
+public:
+	AttributeMinProcessingTimeAttrib():Attr("AttributeMinProcessingTime",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeMinProcessingTimeAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeMinProcessingTime(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMinProcessingTime_allowed(ty);}
+};
+
+//	Attribute AttributeRecordFreq class definition
+class AttributeRecordFreqAttrib: public Tango::Attr
+{
+public:
+	AttributeRecordFreqAttrib():Attr("AttributeRecordFreq",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeRecordFreqAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeRecordFreq(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeRecordFreq_allowed(ty);}
+};
+
+//	Attribute AttributeFailureFreq class definition
+class AttributeFailureFreqAttrib: public Tango::Attr
+{
+public:
+	AttributeFailureFreqAttrib():Attr("AttributeFailureFreq",
+			Tango::DEV_DOUBLE, Tango::READ) {};
+	~AttributeFailureFreqAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeFailureFreq(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeFailureFreq_allowed(ty);}
+};
+
+//	Attribute AttributeStartedNumber class definition
+class AttributeStartedNumberAttrib: public Tango::Attr
+{
+public:
+	AttributeStartedNumberAttrib():Attr("AttributeStartedNumber",
+			Tango::DEV_LONG, Tango::READ) {};
+	~AttributeStartedNumberAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeStartedNumber(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeStartedNumber_allowed(ty);}
+};
+
+//	Attribute AttributeStoppedNumber class definition
+class AttributeStoppedNumberAttrib: public Tango::Attr
+{
+public:
+	AttributeStoppedNumberAttrib():Attr("AttributeStoppedNumber",
+			Tango::DEV_LONG, Tango::READ) {};
+	~AttributeStoppedNumberAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeStoppedNumber(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeStoppedNumber_allowed(ty);}
+};
+
 //	Attribute ArchiverList class definition
 class ArchiverListAttrib: public Tango::SpectrumAttr
 {
@@ -227,6 +331,19 @@ public:
 		{(static_cast<HdbConfigurationManager *>(dev))->read_ArchiverList(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverList_allowed(ty);}
+};
+
+//	Attribute ArchiverStatus class definition
+class ArchiverStatusAttrib: public Tango::SpectrumAttr
+{
+public:
+	ArchiverStatusAttrib():SpectrumAttr("ArchiverStatus",
+			Tango::DEV_STRING, Tango::READ, 1000) {};
+	~ArchiverStatusAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_ArchiverStatus(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverStatus_allowed(ty);}
 };
 
 
