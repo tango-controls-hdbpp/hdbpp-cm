@@ -107,6 +107,9 @@ public:
 	static void add_domain(string &attr);
 	static string get_only_attr_name(string str);
 	static string get_only_tango_host(string str);
+#ifdef _MULTI_TANGO_HOST
+	static void string_explode(string str, string separator, vector<string>* results);
+#endif
 
 #ifdef _USE_FERMI_DB_RW
 private:

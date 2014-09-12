@@ -1859,6 +1859,12 @@ void HdbConfigurationManager::archiver_add(Tango::DevString argin)
 	
 	//	Add your own code
 	string archname(argin);
+	string arch_host = get_only_tango_host(archname);
+	if(arch_host.find(":")==string::npos)
+		Tango::Except::throw_exception( \
+					(const char*)"Bad Tango host", \
+					(const char*)"Bad Tango host", \
+					(const char*)__func__, Tango::ERR);
 	fix_tango_host(archname);
 
 	vector<string>::iterator itlist = find(archiver_list_fix.begin(), archiver_list_fix.end(), archname);
@@ -2317,6 +2323,7 @@ void HdbConfigurationManager::fix_tango_host(string &attr)
 }
 //=============================================================================
 //=============================================================================
+#ifndef _MULTI_TANGO_HOST
 void HdbConfigurationManager::add_domain(string &str)
 {
 	string::size_type	end1 = str.find(".");
@@ -2376,6 +2383,98 @@ void HdbConfigurationManager::add_domain(string &str)
 		return;
 	}
 }
+#else
+void HdbConfigurationManager::add_domain(string &str)
+{
+	string strresult="";
+	string facility(str);
+	vector<string> facilities;
+	if(str.find(",") == string::npos)
+	{
+		facilities.push_back(facility);
+	}
+	else
+	{
+		string_explode(facility,",",&facilities);
+	}
+	for(vector<string>::iterator it = facilities.begin(); it != facilities.end(); it++)
+	{
+		string::size_type	end1 = it->find(".");
+		if (end1 == string::npos)
+		{
+			//get host name without tango://
+			string::size_type	start = it->find("tango://");
+			if (start == string::npos)
+			{
+				start = 0;
+			}
+			else
+			{
+				start = 8;	//tango:// len
+			}
+			string::size_type end2 = it->find(":", start);
+			if (end2 == string::npos)
+			{
+				strresult += *it;
+				if(it != facilities.end()-1)
+					strresult += ",";
+				continue;
+			}
+			string th = it->substr(start, end2);
+			string port = it->substr(end2);
+			string with_domain = *it;
+
+			map<string,string>::iterator it_domain = domain_map.find(th);
+			if(it_domain != domain_map.end())
+			{
+				with_domain = it_domain->second;
+				//cout << __func__ <<": found domain in map -> " << with_domain<<endl;
+				strresult += with_domain+port;
+				if(it != facilities.end()-1)
+					strresult += ",";
+				continue;
+			}
+
+			struct addrinfo hints;
+//			hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
+//			hints.ai_flags = AI_CANONNAME|AI_CANONIDN;
+			memset(&hints, 0, sizeof hints);
+			hints.ai_family = AF_UNSPEC; /*either IPV4 or IPV6*/
+			hints.ai_socktype = SOCK_STREAM;
+			hints.ai_flags = AI_CANONNAME;
+			struct addrinfo *result, *rp;
+			int ret = getaddrinfo(th.c_str(), NULL, &hints, &result);
+			if (ret != 0)
+			{
+				cout << __func__<< ": getaddrinfo error='" << gai_strerror(ret)<<"' while looking for " << th<<endl;
+				strresult += th+port;
+				if(it != facilities.end()-1)
+					strresult += ",";
+				continue;
+			}
+
+			for (rp = result; rp != NULL; rp = rp->ai_next)
+			{
+				with_domain = string(rp->ai_canonname) + it->substr(end2);
+				domain_map.insert(make_pair(th, string(rp->ai_canonname)));
+			}
+			freeaddrinfo(result); // all done with this structure
+			strresult += with_domain;
+			if(it != facilities.end()-1)
+				strresult += ",";
+			continue;
+		}
+		else
+		{
+			strresult += *it;
+			if(it != facilities.end()-1)
+				strresult += ",";
+			continue;
+		}
+	}
+	str = strresult;
+}
+#endif
 
 string HdbConfigurationManager::get_only_attr_name(string str)
 {
@@ -2448,7 +2547,7 @@ string HdbConfigurationManager::find_archiver(string signame)
 	}
 	return archiver;
 }
-
+#ifndef _MULTI_TANGO_HOST
 string HdbConfigurationManager::remove_domain(string str)
 {
 	string::size_type	end1 = str.find(".");
@@ -2475,6 +2574,60 @@ string HdbConfigurationManager::remove_domain(string str)
 		return th;
 	}
 }
+#else
+string HdbConfigurationManager::remove_domain(string str)
+{
+	string result="";
+	string facility(str);
+	vector<string> facilities;
+	if(str.find(",") == string::npos)
+	{
+		facilities.push_back(facility);
+	}
+	else
+	{
+		string_explode(facility,",",&facilities);
+	}
+	for(vector<string>::iterator it = facilities.begin(); it != facilities.end(); it++)
+	{
+		string::size_type	end1 = it->find(".");
+		if (end1 == string::npos)
+		{
+			result += *it;
+			if(it != facilities.end()-1)
+				result += ",";
+			continue;
+		}
+		else
+		{
+			string::size_type	start = it->find("tango://");
+			if (start == string::npos)
+			{
+				start = 0;
+			}
+			else
+			{
+				start = 8;	//tango:// len
+			}
+			string::size_type	end2 = it->find(":", start);
+			if(end1 > end2)	//'.' not in the tango host part
+			{
+				result += *it;
+				if(it != facilities.end()-1)
+					result += ",";
+				continue;
+			}
+			string th = it->substr(0, end1);
+			th += it->substr(end2, it->size()-end2);
+			result += th;
+			if(it != facilities.end()-1)
+				result += ",";
+			continue;
+		}
+	}
+	return result;
+}
+#endif
 
 bool HdbConfigurationManager::compare_without_domain(string str1, string str2)
 {
@@ -2499,6 +2652,31 @@ bool compare_tango_names(string str1, string str2)
 //		cout << __func__<< ": EQUAL 2 -> '" << str1<<"'=='" << str2<<"'" << endl;
 		return false;
 	}
+#ifdef _MULTI_TANGO_HOST
+	string facility1 = HdbConfigurationManager::get_only_tango_host(str1);
+	string attr_name1 = HdbConfigurationManager::get_only_attr_name(str1);
+	string facility2 = HdbConfigurationManager::get_only_tango_host(str2);
+	string attr_name2 = HdbConfigurationManager::get_only_attr_name(str2);
+	//if attr only part is different -> different
+	if(attr_name1 != attr_name2)
+		return attr_name1<attr_name2;
+
+	//check combination of multiple tango hosts
+	vector<string> facilities1;
+	HdbConfigurationManager::string_explode(facility1,",",&facilities1);
+	vector<string> facilities2;
+	HdbConfigurationManager::string_explode(facility2,",",&facilities2);
+	for(vector<string>::iterator it1=facilities1.begin(); it1!=facilities1.end(); it1++)
+	{
+		for(vector<string>::iterator it2=facilities2.begin(); it2!=facilities2.end(); it2++)
+		{
+			string name1 = string("tango://")+ *it1 + string("/") + attr_name1;
+			string name2 = string("tango://")+ *it2 + string("/") + attr_name2;
+			if(name1 == name2)
+				return false;
+		}
+	}
+#endif
 	string str1_nd = HdbConfigurationManager::remove_domain(str1);
 	string str2_nd = HdbConfigurationManager::remove_domain(str2);
 	if(str1_nd == str2_nd)
@@ -2506,11 +2684,50 @@ bool compare_tango_names(string str1, string str2)
 //		cout << __func__<< ": EQUAL 3 -> '" << str1_nd<<"'=='" << str2_nd<<"'" << endl;
 		return false;
 	}
+#ifdef _MULTI_TANGO_HOST
+	string facility1_nd = HdbConfigurationManager::get_only_tango_host(str1_nd);
+	string attr_name1_nd = HdbConfigurationManager::get_only_attr_name(str1_nd);
+	string facility2_nd = HdbConfigurationManager::get_only_tango_host(str2_nd);
+	string attr_name2_nd = HdbConfigurationManager::get_only_attr_name(str2_nd);
+	//check combination of multiple tango hosts
+	vector<string> facilities1_nd;
+	HdbConfigurationManager::string_explode(facility1_nd,",",&facilities1_nd);
+	vector<string> facilities2_nd;
+	HdbConfigurationManager::string_explode(facility2_nd,",",&facilities2_nd);
+	for(vector<string>::iterator it1=facilities1_nd.begin(); it1!=facilities1_nd.end(); it1++)
+	{
+		for(vector<string>::iterator it2=facilities2_nd.begin(); it2!=facilities2_nd.end(); it2++)
+		{
+			string name1 = string("tango://")+ *it1 + string("/") + attr_name1;
+			string name2 = string("tango://")+ *it2 + string("/") + attr_name2;
+			if(name1 == name2)
+				return false;
+		}
+	}
+#endif
 	bool result=str1_nd<str2_nd;
 //	cout << __func__<< ": DIFFERENTS -> '" << str1_nd<< (result ? "'<'" : "'>'") << str2_nd<<"'" << endl;
 	return result;
 }
+#ifdef _MULTI_TANGO_HOST
+void HdbConfigurationManager::string_explode(string str, string separator, vector<string>* results)
+{
+	string::size_type found;
 
+	found = str.find_first_of(separator);
+	while(found != string::npos) {
+		if(found > 0) {
+			results->push_back(str.substr(0,found));
+		}
+		str = str.substr(found+1);
+		found = str.find_first_of(separator);
+	}
+	if(str.length() > 0) {
+		results->push_back(str);
+	}
+
+}
+#endif
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::namespace_ending
 } //	namespace
