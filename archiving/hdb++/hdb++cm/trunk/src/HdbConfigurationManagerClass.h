@@ -320,6 +320,19 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeStoppedNumber_allowed(ty);}
 };
 
+//	Attribute AttributeMaxPendingNumber class definition
+class AttributeMaxPendingNumberAttrib: public Tango::Attr
+{
+public:
+	AttributeMaxPendingNumberAttrib():Attr("AttributeMaxPendingNumber",
+			Tango::DEV_LONG, Tango::READ) {};
+	~AttributeMaxPendingNumberAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributeMaxPendingNumber(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMaxPendingNumber_allowed(ty);}
+};
+
 //	Attribute ArchiverList class definition
 class ArchiverListAttrib: public Tango::SpectrumAttr
 {
