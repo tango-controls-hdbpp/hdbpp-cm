@@ -160,6 +160,7 @@ public:
 	Tango::DevDouble	*attr_AttributeFailureFreq_read;
 	Tango::DevLong	*attr_AttributeStartedNumber_read;
 	Tango::DevLong	*attr_AttributeStoppedNumber_read;
+	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
 
@@ -412,6 +413,15 @@ public:
  */
 	virtual void read_AttributeStoppedNumber(Tango::Attribute &attr);
 	virtual bool is_AttributeStoppedNumber_allowed(Tango::AttReqType type);
+/**
+ *	Attribute AttributeMaxPendingNumber related methods
+ *	Description: Max number of attributes waiting to be archived
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+	virtual void read_AttributeMaxPendingNumber(Tango::Attribute &attr);
+	virtual bool is_AttributeMaxPendingNumber_allowed(Tango::AttReqType type);
 /**
  *	Attribute ArchiverList related methods
  *	Description: 

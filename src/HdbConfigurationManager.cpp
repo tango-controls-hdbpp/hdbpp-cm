@@ -94,6 +94,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributeFailureFreq        |  Tango::DevDouble	Scalar
 //  AttributeStartedNumber      |  Tango::DevLong	Scalar
 //  AttributeStoppedNumber      |  Tango::DevLong	Scalar
+//  AttributeMaxPendingNumber   |  Tango::DevLong	Scalar
 //  ArchiverList                |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatus              |  Tango::DevString	Spectrum  ( max = 1000)
 //================================================================
@@ -185,6 +186,7 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_AttributeFailureFreq_read;
 	delete[] attr_AttributeStartedNumber_read;
 	delete[] attr_AttributeStoppedNumber_read;
+	delete[] attr_AttributeMaxPendingNumber_read;
 }
 
 //--------------------------------------------------------
@@ -234,6 +236,7 @@ void HdbConfigurationManager::init_device()
 	attr_AttributeFailureFreq_read = new Tango::DevDouble[1];
 	attr_AttributeStartedNumber_read = new Tango::DevLong[1];
 	attr_AttributeStoppedNumber_read = new Tango::DevLong[1];
+	attr_AttributeMaxPendingNumber_read = new Tango::DevLong[1];
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::init_device) ENABLED START -----*/
 	
@@ -1422,6 +1425,43 @@ void HdbConfigurationManager::read_AttributeStoppedNumber(Tango::Attribute &attr
 	attr.set_value(attr_AttributeStoppedNumber_read);
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeStoppedNumber
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute AttributeMaxPendingNumber related method
+ *	Description: Max number of attributes waiting to be archived
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributeMaxPendingNumber(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributeMaxPendingNumber(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributeMaxPendingNumber) ENABLED START -----*/
+	*attr_AttributeMaxPendingNumber_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributeMaxPendingNumber");
+				Dout >> num;
+				*attr_AttributeMaxPendingNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributeMaxPendingNumber_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributeMaxPendingNumber
 }
 //--------------------------------------------------------
 /**

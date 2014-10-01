@@ -386,6 +386,22 @@ bool HdbConfigurationManager::is_AttributeStoppedNumber_allowed(TANGO_UNUSED(Tan
 
 //--------------------------------------------------------
 /**
+ *	Method      : HdbConfigurationManager::is_AttributeMaxPendingNumber_allowed()
+ *	Description : Execution allowed for AttributeMaxPendingNumber attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeMaxPendingNumber_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributeMaxPendingNumber attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeMaxPendingNumberStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeMaxPendingNumberStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::is_ArchiverList_allowed()
  *	Description : Execution allowed for ArchiverList attribute
  */

@@ -956,7 +956,7 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	format	not set for AttributeNokNumber
 	//	max_value	not set for AttributeNokNumber
 	//	min_value	not set for AttributeNokNumber
-	//	max_alarm	not set for AttributeNokNumber
+	attributenoknumber_prop.set_max_alarm("1");
 	//	min_alarm	not set for AttributeNokNumber
 	//	max_warning	not set for AttributeNokNumber
 	//	min_warning	not set for AttributeNokNumber
@@ -1376,6 +1376,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	attributestoppednumber->set_disp_level(Tango::OPERATOR);
 	//	Not Memorized
 	att_list.push_back(attributestoppednumber);
+
+	//	Attribute : AttributeMaxPendingNumber
+	AttributeMaxPendingNumberAttrib	*attributemaxpendingnumber = new AttributeMaxPendingNumberAttrib();
+	Tango::UserDefaultAttrProp	attributemaxpendingnumber_prop;
+	attributemaxpendingnumber_prop.set_description("Max number of attributes waiting to be archived");
+	//	label	not set for AttributeMaxPendingNumber
+	//	unit	not set for AttributeMaxPendingNumber
+	//	standard_unit	not set for AttributeMaxPendingNumber
+	//	display_unit	not set for AttributeMaxPendingNumber
+	//	format	not set for AttributeMaxPendingNumber
+	//	max_value	not set for AttributeMaxPendingNumber
+	//	min_value	not set for AttributeMaxPendingNumber
+	//	max_alarm	not set for AttributeMaxPendingNumber
+	//	min_alarm	not set for AttributeMaxPendingNumber
+	//	max_warning	not set for AttributeMaxPendingNumber
+	//	min_warning	not set for AttributeMaxPendingNumber
+	//	delta_t	not set for AttributeMaxPendingNumber
+	//	delta_val	not set for AttributeMaxPendingNumber
+	
+	attributemaxpendingnumber->set_default_properties(attributemaxpendingnumber_prop);
+	//	Not Polled
+	attributemaxpendingnumber->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributemaxpendingnumber);
 
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
