@@ -95,6 +95,7 @@ protected:
 	vector<string> archiver_list_fix;
 	vector<string> archiver_status_str;
 	vector<string> attribute_search_list_str;
+	vector<double> archiver_statistics_reset_time;
 
 	Tango::DevLong	original_SetPollingPeriod;
 
@@ -163,6 +164,7 @@ public:
 	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
+	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
 
 //	Constructors and destructors
 public:
@@ -440,6 +442,15 @@ public:
  */
 	virtual void read_ArchiverStatus(Tango::Attribute &attr);
 	virtual bool is_ArchiverStatus_allowed(Tango::AttReqType type);
+/**
+ *	Attribute ArchiverStatisticsResetTime related methods
+ *	Description: Seconds elapsed since last statistics reset
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Spectrum max = 1000
+ */
+	virtual void read_ArchiverStatisticsResetTime(Tango::Attribute &attr);
+	virtual bool is_ArchiverStatisticsResetTime_allowed(Tango::AttReqType type);
 
 
 	//--------------------------------------------------------

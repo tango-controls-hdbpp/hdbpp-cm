@@ -75,28 +75,29 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //================================================================
 //  Attributes managed are:
 //================================================================
-//  AttributeOKNumber           |  Tango::DevLong	Scalar
-//  AttributeNokNumber          |  Tango::DevLong	Scalar
-//  AttributePendingNumber      |  Tango::DevLong	Scalar
-//  AttributeNumber             |  Tango::DevLong	Scalar
-//  SetAttributeName            |  Tango::DevString	Scalar
-//  SetPollingPeriod            |  Tango::DevLong	Scalar
-//  SetAbsoluteEvent            |  Tango::DevDouble	Scalar
-//  SetRelativeEvent            |  Tango::DevDouble	Scalar
-//  SetPeriodEvent              |  Tango::DevLong	Scalar
-//  SetCodePushedEvent          |  Tango::DevBoolean	Scalar
-//  SetArchiver                 |  Tango::DevString	Scalar
-//  AttributeMaxStoreTime       |  Tango::DevDouble	Scalar
-//  AttributeMinStoreTime       |  Tango::DevDouble	Scalar
-//  AttributeMaxProcessingTime  |  Tango::DevDouble	Scalar
-//  AttributeMinProcessingTime  |  Tango::DevDouble	Scalar
-//  AttributeRecordFreq         |  Tango::DevDouble	Scalar
-//  AttributeFailureFreq        |  Tango::DevDouble	Scalar
-//  AttributeStartedNumber      |  Tango::DevLong	Scalar
-//  AttributeStoppedNumber      |  Tango::DevLong	Scalar
-//  AttributeMaxPendingNumber   |  Tango::DevLong	Scalar
-//  ArchiverList                |  Tango::DevString	Spectrum  ( max = 1000)
-//  ArchiverStatus              |  Tango::DevString	Spectrum  ( max = 1000)
+//  AttributeOKNumber            |  Tango::DevLong	Scalar
+//  AttributeNokNumber           |  Tango::DevLong	Scalar
+//  AttributePendingNumber       |  Tango::DevLong	Scalar
+//  AttributeNumber              |  Tango::DevLong	Scalar
+//  SetAttributeName             |  Tango::DevString	Scalar
+//  SetPollingPeriod             |  Tango::DevLong	Scalar
+//  SetAbsoluteEvent             |  Tango::DevDouble	Scalar
+//  SetRelativeEvent             |  Tango::DevDouble	Scalar
+//  SetPeriodEvent               |  Tango::DevLong	Scalar
+//  SetCodePushedEvent           |  Tango::DevBoolean	Scalar
+//  SetArchiver                  |  Tango::DevString	Scalar
+//  AttributeMaxStoreTime        |  Tango::DevDouble	Scalar
+//  AttributeMinStoreTime        |  Tango::DevDouble	Scalar
+//  AttributeMaxProcessingTime   |  Tango::DevDouble	Scalar
+//  AttributeMinProcessingTime   |  Tango::DevDouble	Scalar
+//  AttributeRecordFreq          |  Tango::DevDouble	Scalar
+//  AttributeFailureFreq         |  Tango::DevDouble	Scalar
+//  AttributeStartedNumber       |  Tango::DevLong	Scalar
+//  AttributeStoppedNumber       |  Tango::DevLong	Scalar
+//  AttributeMaxPendingNumber    |  Tango::DevLong	Scalar
+//  ArchiverList                 |  Tango::DevString	Spectrum  ( max = 1000)
+//  ArchiverStatus               |  Tango::DevString	Spectrum  ( max = 1000)
+//  ArchiverStatisticsResetTime  |  Tango::DevDouble	Spectrum  ( max = 1000)
 //================================================================
 
 namespace HdbConfigurationManager_ns
@@ -157,6 +158,12 @@ void HdbConfigurationManager::delete_device()
 	if(attr_ArchiverList_read != NULL)
 		delete [] attr_ArchiverList_read;
 
+	if(attr_ArchiverStatus_read != NULL)
+		delete [] attr_ArchiverStatus_read;
+
+	if(attr_ArchiverStatisticsResetTime_read != NULL)
+		delete [] attr_ArchiverStatisticsResetTime_read;
+
 	for(archiver_map_t::iterator it = archiverMap.begin(); it!= archiverMap.end(); it++)
 	{
 		if(it->second.dp != NULL)
@@ -203,6 +210,7 @@ void HdbConfigurationManager::init_device()
 	//	Initialization before get_device_property() call
 	attr_ArchiverList_read = NULL;
 	attr_ArchiverStatus_read = NULL;
+	attr_ArchiverStatisticsResetTime_read = NULL;
 /*	attr_AddCodePushedEvent_read = &attr_AddCodePushedEvent_write;
 	attr_AddPollingPeriod_read = &attr_AddPollingPeriod_write;
 	attr_AddAbsoluteEvent_read = &attr_AddAbsoluteEvent_write;
@@ -1560,6 +1568,49 @@ void HdbConfigurationManager::read_ArchiverStatus(Tango::Attribute &attr)
 	attr.set_value(attr_ArchiverStatus_read, archiver_status_str.size());
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverStatus
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute ArchiverStatisticsResetTime related method
+ *	Description: Seconds elapsed since last statistics reset
+ *
+ *	Data type:	Tango::DevDouble
+ *	Attr type:	Spectrum max = 1000
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_ArchiverStatisticsResetTime(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_ArchiverStatisticsResetTime(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_ArchiverStatisticsResetTime) ENABLED START -----*/
+	//	Set the attribute value
+	archiver_statistics_reset_time.clear();
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		stringstream arch_status;
+		arch_status << it->first;
+		Tango::DevDouble srtime=0.0;
+		if(it->second.dp)
+		{
+			try
+			{
+				Tango::DeviceAttribute Dout;
+				Dout = it->second.dp->read_attribute("StatisticsResetTime");
+				Dout >> srtime;
+			}
+			catch(Tango::DevFailed &e)
+			{
+			}
+		}
+		archiver_statistics_reset_time.push_back(srtime);
+	}
+	if(attr_ArchiverStatisticsResetTime_read != NULL)
+		delete [] attr_ArchiverStatisticsResetTime_read;
+	attr_ArchiverStatisticsResetTime_read = new Tango::DevDouble[archiver_statistics_reset_time.size()];
+	for (unsigned int i=0 ; i<archiver_statistics_reset_time.size() ; i++)
+		attr_ArchiverStatisticsResetTime_read[i] = archiver_statistics_reset_time[i];
+	attr.set_value(attr_ArchiverStatisticsResetTime_read, archiver_statistics_reset_time.size());
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverStatisticsResetTime
 }
 
 //--------------------------------------------------------
