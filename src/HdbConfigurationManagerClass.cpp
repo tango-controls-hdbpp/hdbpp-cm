@@ -1449,6 +1449,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(archiverstatus);
 
+	//	Attribute : ArchiverStatisticsResetTime
+	ArchiverStatisticsResetTimeAttrib	*archiverstatisticsresettime = new ArchiverStatisticsResetTimeAttrib();
+	Tango::UserDefaultAttrProp	archiverstatisticsresettime_prop;
+	archiverstatisticsresettime_prop.set_description("Seconds elapsed since last statistics reset");
+	//	label	not set for ArchiverStatisticsResetTime
+	archiverstatisticsresettime_prop.set_unit("s");
+	archiverstatisticsresettime_prop.set_standard_unit("1");
+	archiverstatisticsresettime_prop.set_display_unit("s");
+	//	format	not set for ArchiverStatisticsResetTime
+	//	max_value	not set for ArchiverStatisticsResetTime
+	//	min_value	not set for ArchiverStatisticsResetTime
+	//	max_alarm	not set for ArchiverStatisticsResetTime
+	//	min_alarm	not set for ArchiverStatisticsResetTime
+	//	max_warning	not set for ArchiverStatisticsResetTime
+	//	min_warning	not set for ArchiverStatisticsResetTime
+	//	delta_t	not set for ArchiverStatisticsResetTime
+	//	delta_val	not set for ArchiverStatisticsResetTime
+	
+	archiverstatisticsresettime->set_default_properties(archiverstatisticsresettime_prop);
+	//	Not Polled
+	archiverstatisticsresettime->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(archiverstatisticsresettime);
+
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::attribute_factory_after) ENABLED START -----*/

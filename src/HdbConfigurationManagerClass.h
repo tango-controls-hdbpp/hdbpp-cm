@@ -359,6 +359,19 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverStatus_allowed(ty);}
 };
 
+//	Attribute ArchiverStatisticsResetTime class definition
+class ArchiverStatisticsResetTimeAttrib: public Tango::SpectrumAttr
+{
+public:
+	ArchiverStatisticsResetTimeAttrib():SpectrumAttr("ArchiverStatisticsResetTime",
+			Tango::DEV_DOUBLE, Tango::READ, 1000) {};
+	~ArchiverStatisticsResetTimeAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_ArchiverStatisticsResetTime(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverStatisticsResetTime_allowed(ty);}
+};
+
 
 //=========================================
 //	Define classes for commands

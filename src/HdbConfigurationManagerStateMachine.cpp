@@ -432,6 +432,22 @@ bool HdbConfigurationManager::is_ArchiverStatus_allowed(TANGO_UNUSED(Tango::AttR
 	return true;
 }
 
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_ArchiverStatisticsResetTime_allowed()
+ *	Description : Execution allowed for ArchiverStatisticsResetTime attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_ArchiverStatisticsResetTime_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for ArchiverStatisticsResetTime attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ArchiverStatisticsResetTimeStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverStatisticsResetTimeStateAllowed_READ
+	return true;
+}
+
 //=================================================
 //		Commands Allowed Methods
 //=================================================
