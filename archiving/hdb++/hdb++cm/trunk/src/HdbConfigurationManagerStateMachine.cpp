@@ -402,6 +402,22 @@ bool HdbConfigurationManager::is_AttributeMaxPendingNumber_allowed(TANGO_UNUSED(
 
 //--------------------------------------------------------
 /**
+ *	Method      : HdbConfigurationManager::is_AttributePausedNumber_allowed()
+ *	Description : Execution allowed for AttributePausedNumber attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributePausedNumber_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for AttributePausedNumber attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributePausedNumberStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributePausedNumberStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::is_ArchiverList_allowed()
  *	Description : Execution allowed for ArchiverList attribute
  */
@@ -614,6 +630,21 @@ bool HdbConfigurationManager::is_ResetStatistics_allowed(TANGO_UNUSED(const CORB
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::ResetStatisticsStateAllowed) ENABLED START -----*/
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ResetStatisticsStateAllowed
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributePause_allowed()
+ *	Description : Execution allowed for AttributePause attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributePause_allowed(TANGO_UNUSED(const CORBA::Any &any))
+{
+	//	Not any excluded states for AttributePause command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributePauseStateAllowed) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributePauseStateAllowed
 	return true;
 }
 

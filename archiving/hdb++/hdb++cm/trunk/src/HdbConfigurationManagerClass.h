@@ -333,6 +333,19 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeMaxPendingNumber_allowed(ty);}
 };
 
+//	Attribute AttributePausedNumber class definition
+class AttributePausedNumberAttrib: public Tango::Attr
+{
+public:
+	AttributePausedNumberAttrib():Attr("AttributePausedNumber",
+			Tango::DEV_LONG, Tango::READ) {};
+	~AttributePausedNumberAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_AttributePausedNumber(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributePausedNumber_allowed(ty);}
+};
+
 //	Attribute ArchiverList class definition
 class ArchiverListAttrib: public Tango::SpectrumAttr
 {
@@ -627,6 +640,29 @@ public:
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
 	{return (static_cast<HdbConfigurationManager *>(dev))->is_ResetStatistics_allowed(any);}
+};
+
+//	Command AttributePause class definition
+class AttributePauseClass : public Tango::Command
+{
+public:
+	AttributePauseClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out,
+				   const char        *in_desc,
+				   const char        *out_desc,
+				   Tango::DispLevel  level)
+	:Command(name,in,out,in_desc,out_desc, level)	{};
+
+	AttributePauseClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out)
+	:Command(name,in,out)	{};
+	~AttributePauseClass() {};
+	
+	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
+	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
+	{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributePause_allowed(any);}
 };
 
 
