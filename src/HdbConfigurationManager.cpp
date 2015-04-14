@@ -70,6 +70,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributeSearch       |  attribute_search
 //  ArchiverRemove        |  archiver_remove
 //  ResetStatistics       |  reset_statistics
+//  AttributePause        |  attribute_pause
 //================================================================
 
 //================================================================
@@ -95,6 +96,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributeStartedNumber       |  Tango::DevLong	Scalar
 //  AttributeStoppedNumber       |  Tango::DevLong	Scalar
 //  AttributeMaxPendingNumber    |  Tango::DevLong	Scalar
+//  AttributePausedNumber        |  Tango::DevLong	Scalar
 //  ArchiverList                 |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatus               |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatisticsResetTime  |  Tango::DevDouble	Spectrum  ( max = 1000)
@@ -194,6 +196,7 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_AttributeStartedNumber_read;
 	delete[] attr_AttributeStoppedNumber_read;
 	delete[] attr_AttributeMaxPendingNumber_read;
+	delete[] attr_AttributePausedNumber_read;
 }
 
 //--------------------------------------------------------
@@ -245,6 +248,7 @@ void HdbConfigurationManager::init_device()
 	attr_AttributeStartedNumber_read = new Tango::DevLong[1];
 	attr_AttributeStoppedNumber_read = new Tango::DevLong[1];
 	attr_AttributeMaxPendingNumber_read = new Tango::DevLong[1];
+	attr_AttributePausedNumber_read = new Tango::DevLong[1];
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::init_device) ENABLED START -----*/
 	
@@ -1473,6 +1477,43 @@ void HdbConfigurationManager::read_AttributeMaxPendingNumber(Tango::Attribute &a
 }
 //--------------------------------------------------------
 /**
+ *	Read attribute AttributePausedNumber related method
+ *	Description: Number of archived attributes paused
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_AttributePausedNumber(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_AttributePausedNumber(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_AttributePausedNumber) ENABLED START -----*/
+	*attr_AttributePausedNumber_read = 0;
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+		{
+			Tango::DeviceAttribute Dout;
+			Tango::DevLong num;
+			try
+			{
+				Dout = it->second.dp->read_attribute("AttributePausedNumber");
+				Dout >> num;
+				*attr_AttributePausedNumber_read += num;
+			}
+			catch(Tango::DevFailed &e)
+			{
+				INFO_STREAM << __func__<<": Error reading "<<it->first<<": "<<e.errors[0].desc;
+			}
+		}
+	}
+	//	Set the attribute value
+	attr.set_value(attr_AttributePausedNumber_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_AttributePausedNumber
+}
+//--------------------------------------------------------
+/**
  *	Read attribute ArchiverList related method
  *	Description: 
  *
@@ -2380,6 +2421,52 @@ void HdbConfigurationManager::reset_statistics()
 			INFO_STREAM << __func__ << ": unable to ResetStatistics on " << it->first;
 	}
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::reset_statistics
+}
+//--------------------------------------------------------
+/**
+ *	Command AttributePause related method
+ *	Description: Pause archiving single attribute
+ *
+ *	@param argin Attribute name
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::attribute_pause(Tango::DevString argin)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::AttributePause()  - " << device_name << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::attribute_pause) ENABLED START -----*/
+	
+	//	Add your own code
+	string signame(argin);
+	fix_tango_host(signame);
+	string archname = find_archiver(signame);
+	DEBUG_STREAM << __func__<<": found archname=" << archname << " for signame=" << signame << endl;
+	archiver_map_t::iterator itmap = archiverMap.find(archname);
+	if(itmap == archiverMap.end())
+	{
+		stringstream tmp;
+		tmp << "Attribute '" << signame << "' not found";
+		Tango::Except::throw_exception( \
+					(const char*)"Attribute not found", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+	if(itmap->second.dp)
+	{
+		Tango::DeviceData Din;
+		Din << signame;
+		itmap->second.dp->command_inout("AttributePause",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmap->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_pause
 }
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::namespace_ending) ENABLED START -----*/

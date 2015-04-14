@@ -372,6 +372,26 @@ CORBA::Any *ResetStatisticsClass::execute(Tango::DeviceImpl *device, TANGO_UNUSE
 	return new CORBA::Any();
 }
 
+//--------------------------------------------------------
+/**
+ * method : 		AttributePauseClass::execute()
+ * description : 	method to trigger the execution of the command.
+ *
+ * @param	device	The device on which the command must be executed
+ * @param	in_any	The command input data
+ *
+ *	returns The command output data (packed in the Any object)
+ */
+//--------------------------------------------------------
+CORBA::Any *AttributePauseClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+{
+	cout2 << "AttributePauseClass::execute(): arrived" << endl;
+	Tango::DevString argin;
+	extract(in_any, argin);
+	((static_cast<HdbConfigurationManager *>(device))->attribute_pause(argin));
+	return new CORBA::Any();
+}
+
 
 //===================================================================
 //	Properties management
@@ -1401,6 +1421,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(attributemaxpendingnumber);
 
+	//	Attribute : AttributePausedNumber
+	AttributePausedNumberAttrib	*attributepausednumber = new AttributePausedNumberAttrib();
+	Tango::UserDefaultAttrProp	attributepausednumber_prop;
+	attributepausednumber_prop.set_description("Number of archived attributes paused");
+	//	label	not set for AttributePausedNumber
+	//	unit	not set for AttributePausedNumber
+	//	standard_unit	not set for AttributePausedNumber
+	//	display_unit	not set for AttributePausedNumber
+	//	format	not set for AttributePausedNumber
+	//	max_value	not set for AttributePausedNumber
+	//	min_value	not set for AttributePausedNumber
+	//	max_alarm	not set for AttributePausedNumber
+	//	min_alarm	not set for AttributePausedNumber
+	//	max_warning	not set for AttributePausedNumber
+	//	min_warning	not set for AttributePausedNumber
+	//	delta_t	not set for AttributePausedNumber
+	//	delta_val	not set for AttributePausedNumber
+	
+	attributepausednumber->set_default_properties(attributepausednumber_prop);
+	//	Not Polled
+	attributepausednumber->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(attributepausednumber);
+
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
 	Tango::UserDefaultAttrProp	archiverlist_prop;
@@ -1595,6 +1639,15 @@ void HdbConfigurationManagerClass::command_factory()
 			"",
 			Tango::OPERATOR);
 	command_list.push_back(pResetStatisticsCmd);
+
+	//	Command AttributePause
+	AttributePauseClass	*pAttributePauseCmd =
+		new AttributePauseClass("AttributePause",
+			Tango::DEV_STRING, Tango::DEV_VOID,
+			"Attribute name",
+			"",
+			Tango::OPERATOR);
+	command_list.push_back(pAttributePauseCmd);
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::command_factory_after) ENABLED START -----*/
 	

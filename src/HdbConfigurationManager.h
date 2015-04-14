@@ -162,6 +162,7 @@ public:
 	Tango::DevLong	*attr_AttributeStartedNumber_read;
 	Tango::DevLong	*attr_AttributeStoppedNumber_read;
 	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
+	Tango::DevLong	*attr_AttributePausedNumber_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
 	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
@@ -425,6 +426,15 @@ public:
 	virtual void read_AttributeMaxPendingNumber(Tango::Attribute &attr);
 	virtual bool is_AttributeMaxPendingNumber_allowed(Tango::AttReqType type);
 /**
+ *	Attribute AttributePausedNumber related methods
+ *	Description: Number of archived attributes paused
+ *
+ *	Data type:	Tango::DevLong
+ *	Attr type:	Scalar
+ */
+	virtual void read_AttributePausedNumber(Tango::Attribute &attr);
+	virtual bool is_AttributePausedNumber_allowed(Tango::AttReqType type);
+/**
  *	Attribute ArchiverList related methods
  *	Description: 
  *
@@ -555,6 +565,14 @@ public:
 	 */
 	virtual void reset_statistics();
 	virtual bool is_ResetStatistics_allowed(const CORBA::Any &any);
+	/**
+	 *	Command AttributePause related method
+	 *	Description: Pause archiving single attribute
+	 *
+	 *	@param argin Attribute name
+	 */
+	virtual void attribute_pause(Tango::DevString argin);
+	virtual bool is_AttributePause_allowed(const CORBA::Any &any);
 
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::Additional Method prototypes) ENABLED START -----*/
