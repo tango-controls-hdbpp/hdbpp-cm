@@ -346,6 +346,21 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributePausedNumber_allowed(ty);}
 };
 
+//	Attribute SetTTL class definition
+class SetTTLAttrib: public Tango::Attr
+{
+public:
+	SetTTLAttrib():Attr("SetTTL",
+			Tango::DEV_ULONG, Tango::READ_WRITE) {};
+	~SetTTLAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_SetTTL(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->write_SetTTL(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_SetTTL_allowed(ty);}
+};
+
 //	Attribute ArchiverList class definition
 class ArchiverListAttrib: public Tango::SpectrumAttr
 {
@@ -683,18 +698,10 @@ class HdbConfigurationManagerClass : public Tango::DeviceClass
 
 	//	Class properties data members
 	public:
-		//	DbHost:	
-		string	dbHost;
-		//	DbUser:	
-		string	dbUser;
-		//	DbPassword:	
-		string	dbPassword;
-		//	DbName:	
-		string	dbName;
-		//	DbPort:	
-		Tango::DevShort	dbPort;
 		//	MaxSearchSize:	
 		Tango::DevLong	maxSearchSize;
+		//	LibConfiguration:	Configuration for the library
+		vector<string>	libConfiguration;
 	public:
 		//	write class properties data members
 		Tango::DbData	cl_prop;
@@ -714,6 +721,7 @@ class HdbConfigurationManagerClass : public Tango::DeviceClass
 		static HdbConfigurationManagerClass *_instance;
 		void command_factory();
 		void attribute_factory(vector<Tango::Attr *> &);
+		void pipe_factory();
 		void write_class_property();
 		void set_default_property();
 		void get_class_property();

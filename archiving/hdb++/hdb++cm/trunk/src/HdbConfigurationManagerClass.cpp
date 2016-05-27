@@ -132,8 +132,8 @@ HdbConfigurationManagerClass *HdbConfigurationManagerClass::init(const char *nam
 		catch (bad_alloc &)
 		{
 			throw;
-		}		
-	}		
+		}
+	}
 	return _instance;
 }
 
@@ -455,12 +455,8 @@ void HdbConfigurationManagerClass::get_class_property()
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManagerClass::get_class_property_before
 	//	Read class properties from database.
-	cl_prop.push_back(Tango::DbDatum("DbHost"));
-	cl_prop.push_back(Tango::DbDatum("DbUser"));
-	cl_prop.push_back(Tango::DbDatum("DbPassword"));
-	cl_prop.push_back(Tango::DbDatum("DbName"));
-	cl_prop.push_back(Tango::DbDatum("DbPort"));
 	cl_prop.push_back(Tango::DbDatum("MaxSearchSize"));
+	cl_prop.push_back(Tango::DbDatum("LibConfiguration"));
 	
 	//	Call database and extract values
 	if (Tango::Util::instance()->_UseDb==true)
@@ -468,66 +464,6 @@ void HdbConfigurationManagerClass::get_class_property()
 	Tango::DbDatum	def_prop;
 	int	i = -1;
 
-	//	Try to extract DbHost value
-	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  dbHost;
-	else
-	{
-		//	Check default value for DbHost
-		def_prop = get_default_class_property(cl_prop[i].name);
-		if (def_prop.is_empty()==false)
-		{
-			def_prop    >>  dbHost;
-			cl_prop[i]  <<  dbHost;
-		}
-	}
-	//	Try to extract DbUser value
-	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  dbUser;
-	else
-	{
-		//	Check default value for DbUser
-		def_prop = get_default_class_property(cl_prop[i].name);
-		if (def_prop.is_empty()==false)
-		{
-			def_prop    >>  dbUser;
-			cl_prop[i]  <<  dbUser;
-		}
-	}
-	//	Try to extract DbPassword value
-	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  dbPassword;
-	else
-	{
-		//	Check default value for DbPassword
-		def_prop = get_default_class_property(cl_prop[i].name);
-		if (def_prop.is_empty()==false)
-		{
-			def_prop    >>  dbPassword;
-			cl_prop[i]  <<  dbPassword;
-		}
-	}
-	//	Try to extract DbName value
-	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  dbName;
-	else
-	{
-		//	Check default value for DbName
-		def_prop = get_default_class_property(cl_prop[i].name);
-		if (def_prop.is_empty()==false)
-		{
-			def_prop    >>  dbName;
-			cl_prop[i]  <<  dbName;
-		}
-	}
-	//	Try to extract DbPort value
-	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  dbPort;
-	else
-	{
-		//	Check default value for DbPort
-		def_prop = get_default_class_property(cl_prop[i].name);
-		if (def_prop.is_empty()==false)
-		{
-			def_prop    >>  dbPort;
-			cl_prop[i]  <<  dbPort;
-		}
-	}
 	//	Try to extract MaxSearchSize value
 	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  maxSearchSize;
 	else
@@ -538,6 +474,18 @@ void HdbConfigurationManagerClass::get_class_property()
 		{
 			def_prop    >>  maxSearchSize;
 			cl_prop[i]  <<  maxSearchSize;
+		}
+	}
+	//	Try to extract LibConfiguration value
+	if (cl_prop[++i].is_empty()==false)	cl_prop[i]  >>  libConfiguration;
+	else
+	{
+		//	Check default value for LibConfiguration
+		def_prop = get_default_class_property(cl_prop[i].name);
+		if (def_prop.is_empty()==false)
+		{
+			def_prop    >>  libConfiguration;
+			cl_prop[i]  <<  libConfiguration;
 		}
 	}
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::get_class_property_after) ENABLED START -----*/
@@ -565,73 +513,21 @@ void HdbConfigurationManagerClass::set_default_property()
 	vector<string>	vect_data;
 
 	//	Set Default Class Properties
-	prop_name = "DbHost";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		cl_def_prop.push_back(data);
-		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_class_prop(prop_name, prop_desc);
-	prop_name = "DbUser";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		cl_def_prop.push_back(data);
-		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_class_prop(prop_name, prop_desc);
-	prop_name = "DbPassword";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		cl_def_prop.push_back(data);
-		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_class_prop(prop_name, prop_desc);
-	prop_name = "DbName";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		cl_def_prop.push_back(data);
-		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_class_prop(prop_name, prop_desc);
-	prop_name = "DbPort";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		cl_def_prop.push_back(data);
-		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_class_prop(prop_name, prop_desc);
 	prop_name = "MaxSearchSize";
 	prop_desc = "";
+	prop_def  = "";
+	vect_data.clear();
+	if (prop_def.length()>0)
+	{
+		Tango::DbDatum	data(prop_name);
+		data << vect_data ;
+		cl_def_prop.push_back(data);
+		add_wiz_class_prop(prop_name, prop_desc,  prop_def);
+	}
+	else
+		add_wiz_class_prop(prop_name, prop_desc);
+	prop_name = "LibConfiguration";
+	prop_desc = "Configuration for the library";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -672,60 +568,8 @@ void HdbConfigurationManagerClass::set_default_property()
 	}
 	else
 		add_wiz_dev_prop(prop_name, prop_desc);
-	prop_name = "DbHost";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-	prop_name = "DbUser";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-	prop_name = "DbPassword";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-	prop_name = "DbName";
-	prop_desc = "";
-	prop_def  = "";
-	vect_data.clear();
-	if (prop_def.length()>0)
-	{
-		Tango::DbDatum	data(prop_name);
-		data << vect_data ;
-		dev_def_prop.push_back(data);
-		add_wiz_dev_prop(prop_name, prop_desc,  prop_def);
-	}
-	else
-		add_wiz_dev_prop(prop_name, prop_desc);
-	prop_name = "DbPort";
-	prop_desc = "";
+	prop_name = "LibConfiguration";
+	prop_desc = "Configuration for the library";
 	prop_def  = "";
 	vect_data.clear();
 	if (prop_def.length()>0)
@@ -901,7 +745,7 @@ void HdbConfigurationManagerClass::device_factory(const Tango::DevVarStringArray
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
 	{
 		cout4 << "Device name : " << (*devlist_ptr)[i].in() << endl;
-		device_list.push_back(new HdbConfigurationManager(this, (*devlist_ptr)[i]));							 
+		device_list.push_back(new HdbConfigurationManager(this, (*devlist_ptr)[i]));
 	}
 
 	//	Manage dynamic attributes if any
@@ -1445,6 +1289,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(attributepausednumber);
 
+	//	Attribute : SetTTL
+	SetTTLAttrib	*setttl = new SetTTLAttrib();
+	Tango::UserDefaultAttrProp	setttl_prop;
+	setttl_prop.set_description("Time To Live for temporary storage in hours");
+	//	label	not set for SetTTL
+	setttl_prop.set_unit("hours");
+	setttl_prop.set_standard_unit("1");
+	setttl_prop.set_display_unit("hours");
+	//	format	not set for SetTTL
+	//	max_value	not set for SetTTL
+	//	min_value	not set for SetTTL
+	//	max_alarm	not set for SetTTL
+	//	min_alarm	not set for SetTTL
+	//	max_warning	not set for SetTTL
+	//	min_warning	not set for SetTTL
+	//	delta_t	not set for SetTTL
+	//	delta_val	not set for SetTTL
+	
+	setttl->set_default_properties(setttl_prop);
+	//	Not Polled
+	setttl->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(setttl);
+
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
 	Tango::UserDefaultAttrProp	archiverlist_prop;
@@ -1517,6 +1385,7 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(archiverstatisticsresettime);
 
+
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::attribute_factory_after) ENABLED START -----*/
@@ -1524,6 +1393,26 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Add your own code
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManagerClass::attribute_factory_after
+}
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManagerClass::pipe_factory()
+ *	Description : Create the pipe object(s)
+ *                and store them in the pipe list
+ */
+//--------------------------------------------------------
+void HdbConfigurationManagerClass::pipe_factory()
+{
+	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::pipe_factory_before) ENABLED START -----*/
+	
+	//	Add your own code
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManagerClass::pipe_factory_before
+	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::pipe_factory_after) ENABLED START -----*/
+	
+	//	Add your own code
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManagerClass::pipe_factory_after
 }
 //--------------------------------------------------------
 /**
@@ -1665,7 +1554,7 @@ void HdbConfigurationManagerClass::command_factory()
  * method : 		HdbConfigurationManagerClass::create_static_attribute_list
  * description : 	Create the a list of static attributes
  *
- * @param	att_list	the ceated attribute list 
+ * @param	att_list	the ceated attribute list
  */
 //--------------------------------------------------------
 void HdbConfigurationManagerClass::create_static_attribute_list(vector<Tango::Attr *> &att_list)
@@ -1699,10 +1588,10 @@ void HdbConfigurationManagerClass::erase_dynamic_attributes(const Tango::DevVarS
 	Tango::Util *tg = Tango::Util::instance();
 
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
-	{	
+	{
 		Tango::DeviceImpl *dev_impl = tg->get_device_by_name(((string)(*devlist_ptr)[i]).c_str());
 		HdbConfigurationManager *dev = static_cast<HdbConfigurationManager *> (dev_impl);
-		
+
 		vector<Tango::Attribute *> &dev_att_list = dev->get_device_attr()->get_attribute_list();
 		vector<Tango::Attribute *>::iterator ite_att;
 		for (ite_att=dev_att_list.begin() ; ite_att != dev_att_list.end() ; ++ite_att)
@@ -1734,7 +1623,7 @@ void HdbConfigurationManagerClass::erase_dynamic_attributes(const Tango::DevVarS
 Tango::Attr *HdbConfigurationManagerClass::get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname)
 {
 	vector<Tango::Attr *>::iterator it;
-	for (it=att_list.begin() ; it<att_list.end() ; it++)
+	for (it=att_list.begin() ; it<att_list.end() ; ++it)
 		if ((*it)->get_name()==attname)
 			return (*it);
 	//	Attr does not exist

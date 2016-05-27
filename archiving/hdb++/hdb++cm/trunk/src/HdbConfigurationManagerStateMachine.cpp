@@ -418,6 +418,26 @@ bool HdbConfigurationManager::is_AttributePausedNumber_allowed(TANGO_UNUSED(Tang
 
 //--------------------------------------------------------
 /**
+ *	Method      : HdbConfigurationManager::is_SetTTL_allowed()
+ *	Description : Execution allowed for SetTTL attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_SetTTL_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for SetTTL attribute in Write access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetTTLStateAllowed_WRITE) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetTTLStateAllowed_WRITE
+
+	//	Not any excluded states for SetTTL attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetTTLStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetTTLStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::is_ArchiverList_allowed()
  *	Description : Execution allowed for ArchiverList attribute
  */
@@ -463,6 +483,7 @@ bool HdbConfigurationManager::is_ArchiverStatisticsResetTime_allowed(TANGO_UNUSE
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverStatisticsResetTimeStateAllowed_READ
 	return true;
 }
+
 
 //=================================================
 //		Commands Allowed Methods
@@ -647,5 +668,12 @@ bool HdbConfigurationManager::is_AttributePause_allowed(TANGO_UNUSED(const CORBA
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributePauseStateAllowed
 	return true;
 }
+
+
+/*----- PROTECTED REGION ID(HdbConfigurationManager::HdbConfigurationManagerStateAllowed.AdditionalMethods) ENABLED START -----*/
+
+//	Additional Methods
+
+/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::HdbConfigurationManagerStateAllowed.AdditionalMethods
 
 }	//	End of namespace
