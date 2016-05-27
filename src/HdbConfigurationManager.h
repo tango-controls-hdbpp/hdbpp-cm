@@ -127,16 +127,8 @@ public:
 	vector<string>	archiverList;
 	//	MaxSearchSize:	Max size of search result
 	Tango::DevLong	maxSearchSize;
-	//	DbHost:	
-	string	dbHost;
-	//	DbUser:	
-	string	dbUser;
-	//	DbPassword:	
-	string	dbPassword;
-	//	DbName:	
-	string	dbName;
-	//	DbPort:	
-	Tango::DevShort	dbPort;
+	//	LibConfiguration:	Configuration for the library
+	vector<string>	libConfiguration;
 
 	bool	mandatoryNotDefined;
 
@@ -163,6 +155,7 @@ public:
 	Tango::DevLong	*attr_AttributeStoppedNumber_read;
 	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
 	Tango::DevLong	*attr_AttributePausedNumber_read;
+	Tango::DevULong	*attr_SetTTL_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
 	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
@@ -193,7 +186,7 @@ public:
 	HdbConfigurationManager(Tango::DeviceClass *cl,const char *s,const char *d);
 	/**
 	 * The device object destructor.
-	 */	
+	 */
 	~HdbConfigurationManager() {delete_device();};
 
 
@@ -435,6 +428,16 @@ public:
 	virtual void read_AttributePausedNumber(Tango::Attribute &attr);
 	virtual bool is_AttributePausedNumber_allowed(Tango::AttReqType type);
 /**
+ *	Attribute SetTTL related methods
+ *	Description: Time To Live for temporary storage in hours
+ *
+ *	Data type:	Tango::DevULong
+ *	Attr type:	Scalar
+ */
+	virtual void read_SetTTL(Tango::Attribute &attr);
+	virtual void write_SetTTL(Tango::WAttribute &attr);
+	virtual bool is_SetTTL_allowed(Tango::AttReqType type);
+/**
  *	Attribute ArchiverList related methods
  *	Description: 
  *
@@ -470,6 +473,7 @@ public:
 	 */
 	//--------------------------------------------------------
 	void add_dynamic_attributes();
+
 
 
 
@@ -574,6 +578,14 @@ public:
 	virtual void attribute_pause(Tango::DevString argin);
 	virtual bool is_AttributePause_allowed(const CORBA::Any &any);
 
+
+	//--------------------------------------------------------
+	/**
+	 *	Method      : HdbConfigurationManager::add_dynamic_commands()
+	 *	Description : Add dynamic commands if any.
+	 */
+	//--------------------------------------------------------
+	void add_dynamic_commands();
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::Additional Method prototypes) ENABLED START -----*/
 

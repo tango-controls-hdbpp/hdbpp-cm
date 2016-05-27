@@ -97,6 +97,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributeStoppedNumber       |  Tango::DevLong	Scalar
 //  AttributeMaxPendingNumber    |  Tango::DevLong	Scalar
 //  AttributePausedNumber        |  Tango::DevLong	Scalar
+//  SetTTL                       |  Tango::DevULong	Scalar
 //  ArchiverList                 |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatus               |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatisticsResetTime  |  Tango::DevDouble	Spectrum  ( max = 1000)
@@ -197,6 +198,7 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_AttributeStoppedNumber_read;
 	delete[] attr_AttributeMaxPendingNumber_read;
 	delete[] attr_AttributePausedNumber_read;
+	delete[] attr_SetTTL_read;
 }
 
 //--------------------------------------------------------
@@ -225,8 +227,6 @@ void HdbConfigurationManager::init_device()
 
 	//	Get the device properties from database
 	get_device_property();
-	if (mandatoryNotDefined)
-		return;
 	
 	attr_AttributeOKNumber_read = new Tango::DevLong[1];
 	attr_AttributeNokNumber_read = new Tango::DevLong[1];
@@ -249,6 +249,10 @@ void HdbConfigurationManager::init_device()
 	attr_AttributeStoppedNumber_read = new Tango::DevLong[1];
 	attr_AttributeMaxPendingNumber_read = new Tango::DevLong[1];
 	attr_AttributePausedNumber_read = new Tango::DevLong[1];
+	attr_SetTTL_read = new Tango::DevULong[1];
+	//	No longer if mandatory property not set. 
+	if (mandatoryNotDefined)
+		return;
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::init_device) ENABLED START -----*/
 	
@@ -260,6 +264,7 @@ void HdbConfigurationManager::init_device()
 	*attr_SetRelativeEvent_read = -1;
 	*attr_SetAbsoluteEvent_read = -1;
 	*attr_SetPollingPeriod_read = -1;
+	*attr_SetTTL_read = 0;
 	archiver_t tmp;
 	for(vector<string>::iterator it = archiverList.begin(); it!= archiverList.end(); it++)
 	{
@@ -280,11 +285,11 @@ void HdbConfigurationManager::init_device()
 
 	try
 	{
-		mdb = new HdbClient(dbHost, dbUser, dbPassword, dbName, dbPort);
+		mdb = new HdbClient(libConfiguration);
 	}
-	catch (string &err)
+	catch (Tango::DevFailed &err)
 	{
-		ERROR_STREAM << __func__ << ": error connecting DB: " << err << endl;
+		ERROR_STREAM << __func__ << ": error connecting DB: " << err.errors[0].desc << endl;
 		set_state(Tango::FAULT);
 	}
 	
@@ -330,11 +335,7 @@ void HdbConfigurationManager::get_device_property()
 	Tango::DbData	dev_prop;
 	dev_prop.push_back(Tango::DbDatum("ArchiverList"));
 	dev_prop.push_back(Tango::DbDatum("MaxSearchSize"));
-	dev_prop.push_back(Tango::DbDatum("DbHost"));
-	dev_prop.push_back(Tango::DbDatum("DbUser"));
-	dev_prop.push_back(Tango::DbDatum("DbPassword"));
-	dev_prop.push_back(Tango::DbDatum("DbName"));
-	dev_prop.push_back(Tango::DbDatum("DbPort"));
+	dev_prop.push_back(Tango::DbDatum("LibConfiguration"));
 
 	//	is there at least one property to be read ?
 	if (dev_prop.size()>0)
@@ -373,60 +374,16 @@ void HdbConfigurationManager::get_device_property()
 		//	And try to extract MaxSearchSize value from database
 		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  maxSearchSize;
 
-		//	Try to initialize DbHost from class property
+		//	Try to initialize LibConfiguration from class property
 		cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-		if (cl_prop.is_empty()==false)	cl_prop  >>  dbHost;
+		if (cl_prop.is_empty()==false)	cl_prop  >>  libConfiguration;
 		else {
-			//	Try to initialize DbHost from default device value
+			//	Try to initialize LibConfiguration from default device value
 			def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-			if (def_prop.is_empty()==false)	def_prop  >>  dbHost;
+			if (def_prop.is_empty()==false)	def_prop  >>  libConfiguration;
 		}
-		//	And try to extract DbHost value from database
-		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  dbHost;
-
-		//	Try to initialize DbUser from class property
-		cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-		if (cl_prop.is_empty()==false)	cl_prop  >>  dbUser;
-		else {
-			//	Try to initialize DbUser from default device value
-			def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-			if (def_prop.is_empty()==false)	def_prop  >>  dbUser;
-		}
-		//	And try to extract DbUser value from database
-		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  dbUser;
-
-		//	Try to initialize DbPassword from class property
-		cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-		if (cl_prop.is_empty()==false)	cl_prop  >>  dbPassword;
-		else {
-			//	Try to initialize DbPassword from default device value
-			def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-			if (def_prop.is_empty()==false)	def_prop  >>  dbPassword;
-		}
-		//	And try to extract DbPassword value from database
-		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  dbPassword;
-
-		//	Try to initialize DbName from class property
-		cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-		if (cl_prop.is_empty()==false)	cl_prop  >>  dbName;
-		else {
-			//	Try to initialize DbName from default device value
-			def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-			if (def_prop.is_empty()==false)	def_prop  >>  dbName;
-		}
-		//	And try to extract DbName value from database
-		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  dbName;
-
-		//	Try to initialize DbPort from class property
-		cl_prop = ds_class->get_class_property(dev_prop[++i].name);
-		if (cl_prop.is_empty()==false)	cl_prop  >>  dbPort;
-		else {
-			//	Try to initialize DbPort from default device value
-			def_prop = ds_class->get_default_device_property(dev_prop[i].name);
-			if (def_prop.is_empty()==false)	def_prop  >>  dbPort;
-		}
-		//	And try to extract DbPort value from database
-		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  dbPort;
+		//	And try to extract LibConfiguration value from database
+		if (dev_prop[i].is_empty()==false)	dev_prop[i]  >>  libConfiguration;
 
 	}
 
@@ -473,7 +430,7 @@ void HdbConfigurationManager::check_mandatory_property(Tango::DbDatum &class_pro
 //--------------------------------------------------------
 void HdbConfigurationManager::always_executed_hook()
 {
-	INFO_STREAM << "HdbConfigurationManager::always_executed_hook()  " << device_name << endl;
+	DEBUG_STREAM << "HdbConfigurationManager::always_executed_hook()  " << device_name << endl;
 	if (mandatoryNotDefined)
 	{
 		string	status(get_status());
@@ -1514,6 +1471,44 @@ void HdbConfigurationManager::read_AttributePausedNumber(Tango::Attribute &attr)
 }
 //--------------------------------------------------------
 /**
+ *	Read attribute SetTTL related method
+ *	Description: Time To Live for temporary storage in hours
+ *
+ *	Data type:	Tango::DevULong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_SetTTL(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetTTL(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetTTL) ENABLED START -----*/
+	//	Set the attribute value
+	attr.set_value(attr_SetTTL_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_SetTTL
+}
+//--------------------------------------------------------
+/**
+ *	Write attribute SetTTL related method
+ *	Description: Time To Live for temporary storage in hours
+ *
+ *	Data type:	Tango::DevULong
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::write_SetTTL(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::write_SetTTL(Tango::WAttribute &attr) entering... " << endl;
+	//	Retrieve write value
+	Tango::DevULong	w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetTTL) ENABLED START -----*/
+	*attr_SetTTL_read = w_val;
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetTTL
+}
+//--------------------------------------------------------
+/**
  *	Read attribute ArchiverList related method
  *	Description: 
  *
@@ -1805,7 +1800,7 @@ void HdbConfigurationManager::attribute_add()
 	}
 	delete dp;
 	//------3: Configure DB------------------------------------------------
-	int res = mdb->configure_Attr(signame, data_type, data_format, write_type);
+	int res = mdb->configure_Attr(signame, data_type, data_format, write_type, *attr_SetTTL_read);
 	if(res < 0)
 	{
 		Tango::Except::throw_exception( \
@@ -2467,6 +2462,21 @@ void HdbConfigurationManager::attribute_pause(Tango::DevString argin)
 	}
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_pause
+}
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::add_dynamic_commands()
+ *	Description : Create the dynamic commands if any
+ *                for specified device.
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::add_dynamic_commands()
+{
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::add_dynamic_commands) ENABLED START -----*/
+	
+	//	Add your own code to create and add dynamic commands if any
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::add_dynamic_commands
 }
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::namespace_ending) ENABLED START -----*/
