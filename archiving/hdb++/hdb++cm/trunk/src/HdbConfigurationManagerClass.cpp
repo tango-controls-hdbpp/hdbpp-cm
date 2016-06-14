@@ -392,6 +392,46 @@ CORBA::Any *AttributePauseClass::execute(Tango::DeviceImpl *device, const CORBA:
 	return new CORBA::Any();
 }
 
+//--------------------------------------------------------
+/**
+ * method : 		AttributeUpdateClass::execute()
+ * description : 	method to trigger the execution of the command.
+ *
+ * @param	device	The device on which the command must be executed
+ * @param	in_any	The command input data
+ *
+ *	returns The command output data (packed in the Any object)
+ */
+//--------------------------------------------------------
+CORBA::Any *AttributeUpdateClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+{
+	cout2 << "AttributeUpdateClass::execute(): arrived" << endl;
+	const Tango::DevVarStringArray *argin;
+	extract(in_any, argin);
+	((static_cast<HdbConfigurationManager *>(device))->attribute_update(argin));
+	return new CORBA::Any();
+}
+
+//--------------------------------------------------------
+/**
+ * method : 		ContextClass::execute()
+ * description : 	method to trigger the execution of the command.
+ *
+ * @param	device	The device on which the command must be executed
+ * @param	in_any	The command input data
+ *
+ *	returns The command output data (packed in the Any object)
+ */
+//--------------------------------------------------------
+CORBA::Any *ContextClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+{
+	cout2 << "ContextClass::execute(): arrived" << endl;
+	Tango::DevUShort argin;
+	extract(in_any, argin);
+	((static_cast<HdbConfigurationManager *>(device))->context(argin));
+	return new CORBA::Any();
+}
+
 
 //===================================================================
 //	Properties management
@@ -1313,6 +1353,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(setttl);
 
+	//	Attribute : SetContext
+	SetContextAttrib	*setcontext = new SetContextAttrib();
+	Tango::UserDefaultAttrProp	setcontext_prop;
+	setcontext_prop.set_description("list of strategies separated with |");
+	//	label	not set for SetContext
+	//	unit	not set for SetContext
+	//	standard_unit	not set for SetContext
+	//	display_unit	not set for SetContext
+	//	format	not set for SetContext
+	//	max_value	not set for SetContext
+	//	min_value	not set for SetContext
+	//	max_alarm	not set for SetContext
+	//	min_alarm	not set for SetContext
+	//	max_warning	not set for SetContext
+	//	min_warning	not set for SetContext
+	//	delta_t	not set for SetContext
+	//	delta_val	not set for SetContext
+	
+	setcontext->set_default_properties(setcontext_prop);
+	//	Not Polled
+	setcontext->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(setcontext);
+
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
 	Tango::UserDefaultAttrProp	archiverlist_prop;
@@ -1384,6 +1448,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	archiverstatisticsresettime->set_disp_level(Tango::OPERATOR);
 	//	Not Memorized
 	att_list.push_back(archiverstatisticsresettime);
+
+	//	Attribute : ArchiverContext
+	ArchiverContextAttrib	*archivercontext = new ArchiverContextAttrib();
+	Tango::UserDefaultAttrProp	archivercontext_prop;
+	archivercontext_prop.set_description("Archiver context");
+	//	label	not set for ArchiverContext
+	archivercontext_prop.set_unit("s");
+	archivercontext_prop.set_standard_unit("1");
+	archivercontext_prop.set_display_unit("s");
+	//	format	not set for ArchiverContext
+	//	max_value	not set for ArchiverContext
+	//	min_value	not set for ArchiverContext
+	//	max_alarm	not set for ArchiverContext
+	//	min_alarm	not set for ArchiverContext
+	//	max_warning	not set for ArchiverContext
+	//	min_warning	not set for ArchiverContext
+	//	delta_t	not set for ArchiverContext
+	//	delta_val	not set for ArchiverContext
+	
+	archivercontext->set_default_properties(archivercontext_prop);
+	//	Not Polled
+	archivercontext->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(archivercontext);
 
 
 	//	Create a list of static attributes
@@ -1537,6 +1625,24 @@ void HdbConfigurationManagerClass::command_factory()
 			"",
 			Tango::OPERATOR);
 	command_list.push_back(pAttributePauseCmd);
+
+	//	Command AttributeUpdate
+	AttributeUpdateClass	*pAttributeUpdateCmd =
+		new AttributeUpdateClass("AttributeUpdate",
+			Tango::DEVVAR_STRINGARRAY, Tango::DEV_VOID,
+			"Attribute name, strategies",
+			"",
+			Tango::OPERATOR);
+	command_list.push_back(pAttributeUpdateCmd);
+
+	//	Command Context
+	ContextClass	*pContextCmd =
+		new ContextClass("Context",
+			Tango::DEV_USHORT, Tango::DEV_VOID,
+			"Context",
+			"",
+			Tango::OPERATOR);
+	command_list.push_back(pContextCmd);
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::command_factory_after) ENABLED START -----*/
 	

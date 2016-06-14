@@ -71,6 +71,8 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  ArchiverRemove        |  archiver_remove
 //  ResetStatistics       |  reset_statistics
 //  AttributePause        |  attribute_pause
+//  AttributeUpdate       |  attribute_update
+//  Context               |  context
 //================================================================
 
 //================================================================
@@ -98,9 +100,11 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributeMaxPendingNumber    |  Tango::DevLong	Scalar
 //  AttributePausedNumber        |  Tango::DevLong	Scalar
 //  SetTTL                       |  Tango::DevULong	Scalar
+//  SetContext                   |  Tango::DevString	Scalar
 //  ArchiverList                 |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatus               |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatisticsResetTime  |  Tango::DevDouble	Spectrum  ( max = 1000)
+//  ArchiverContext              |  Tango::DevUChar	Spectrum  ( max = 1000)
 //================================================================
 
 namespace HdbConfigurationManager_ns
@@ -199,6 +203,8 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_AttributeMaxPendingNumber_read;
 	delete[] attr_AttributePausedNumber_read;
 	delete[] attr_SetTTL_read;
+	delete[] attr_SetContext_read;
+	delete[] attr_ArchiverContext_read;
 }
 
 //--------------------------------------------------------
@@ -250,6 +256,8 @@ void HdbConfigurationManager::init_device()
 	attr_AttributeMaxPendingNumber_read = new Tango::DevLong[1];
 	attr_AttributePausedNumber_read = new Tango::DevLong[1];
 	attr_SetTTL_read = new Tango::DevULong[1];
+	attr_SetContext_read = new Tango::DevString[1];
+	attr_ArchiverContext_read = new Tango::DevUChar[1000];
 	//	No longer if mandatory property not set. 
 	if (mandatoryNotDefined)
 		return;
@@ -265,6 +273,7 @@ void HdbConfigurationManager::init_device()
 	*attr_SetAbsoluteEvent_read = -1;
 	*attr_SetPollingPeriod_read = -1;
 	*attr_SetTTL_read = 0;
+	*attr_SetContext_read = CORBA::string_dup("");
 	archiver_t tmp;
 	for(vector<string>::iterator it = archiverList.begin(); it!= archiverList.end(); it++)
 	{
@@ -1509,6 +1518,43 @@ void HdbConfigurationManager::write_SetTTL(Tango::WAttribute &attr)
 }
 //--------------------------------------------------------
 /**
+ *	Read attribute SetContext related method
+ *	Description: list of strategies separated with |
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_SetContext(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_SetContext(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_SetContext) ENABLED START -----*/
+	//	Set the attribute value
+	attr.set_value(attr_SetContext_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_SetContext
+}
+//--------------------------------------------------------
+/**
+ *	Write attribute SetContext related method
+ *	Description: list of strategies separated with |
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::write_SetContext(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::write_SetContext(Tango::WAttribute &attr) entering... " << endl;
+	//	Retrieve write value
+	Tango::DevString	w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetContext) ENABLED START -----*/
+	*attr_SetContext_read = CORBA::string_dup(w_val);
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetContext
+}
+//--------------------------------------------------------
+/**
  *	Read attribute ArchiverList related method
  *	Description: 
  *
@@ -1647,6 +1693,49 @@ void HdbConfigurationManager::read_ArchiverStatisticsResetTime(Tango::Attribute 
 	attr.set_value(attr_ArchiverStatisticsResetTime_read, archiver_statistics_reset_time.size());
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverStatisticsResetTime
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute ArchiverContext related method
+ *	Description: Archiver context
+ *
+ *	Data type:	Tango::DevUChar
+ *	Attr type:	Spectrum max = 1000
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_ArchiverContext(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_ArchiverContext(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_ArchiverContext) ENABLED START -----*/
+	//	Set the attribute value
+	archiver_context.clear();
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		stringstream arch_status;
+		arch_status << it->first;
+		Tango::DevUChar context=0;
+		if(it->second.dp)
+		{
+			try
+			{
+				Tango::DeviceAttribute Dout;
+				Dout = it->second.dp->read_attribute("Context");
+				Dout >> context;
+			}
+			catch(Tango::DevFailed &e)
+			{
+			}
+		}
+		archiver_context.push_back(context);
+	}
+	if(attr_ArchiverContext_read != NULL)
+		delete [] attr_ArchiverContext_read;
+	attr_ArchiverContext_read = new Tango::DevUChar[archiver_context.size()];
+	for (unsigned int i=0 ; i<archiver_context.size() ; i++)
+		attr_ArchiverContext_read[i] = archiver_context[i];
+	attr.set_value(attr_ArchiverContext_read, archiver_context.size());
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverContext
 }
 
 //--------------------------------------------------------
@@ -1814,8 +1903,12 @@ void HdbConfigurationManager::attribute_add()
 	//------4: Assign to existing EventSubscriber--------------------------
 	if(itmapnew->second.dp)
 	{
+		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
-		Din << signame;
+		add_argin.length(2);
+		add_argin[0] = CORBA::string_dup(signame.c_str());
+		add_argin[1] = CORBA::string_dup(*attr_SetContext_read);
+		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
 	}
 	else
@@ -2465,6 +2558,198 @@ void HdbConfigurationManager::attribute_pause(Tango::DevString argin)
 }
 //--------------------------------------------------------
 /**
+ *	Command AttributeUpdate related method
+ *	Description: Update strategies for an already archived attribute.
+ *
+ *	@param argin Attribute name, strategies
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::attribute_update(const Tango::DevVarStringArray *argin)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::AttributeUpdate()  - " << device_name << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::attribute_update) ENABLED START -----*/
+	
+	//	Add your own code
+	string signame(*attr_SetAttributeName_read);
+	string archname = find_archiver(signame);
+
+	archiver_map_t::iterator itmapnew = archiverMap.find(archname);
+	if(itmapnew != archiverMap.end())
+	{
+		stringstream tmp;
+		tmp << "Attribute '" << signame << "' already archived by '"<<archname<<"'";
+		Tango::Except::throw_exception( \
+					(const char*)"Already archived", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	archname=string(*attr_SetArchiver_read);
+	itmapnew = archiverMap.find(archname);
+	if(itmapnew == archiverMap.end())
+	{
+		stringstream tmp;
+		tmp << "Archiver '" << archname << "' not found";
+		Tango::Except::throw_exception( \
+					(const char*)"Archiver not found", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	//------1: check attribute with event parameters-----------------------
+	string::size_type idx = signame.find_last_of("/");
+	if (idx==string::npos)
+		Tango::Except::throw_exception(
+					(const char *)"SyntaxError",
+					"Syntax error in signal name",
+					(const char *)__func__);
+	string devname = signame.substr(0, idx);
+	string attname = signame.substr(idx+1);
+	Tango::DeviceProxy *dp = new Tango::DeviceProxy(devname);
+
+	Tango::AttributeInfo	info = dp->get_attribute_config(attname);
+	int data_type = info.data_type;
+	int data_format = info.data_format;
+	int write_type = info.writable;
+	DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - data_type=" << data_type<<" Tango::DEV_STATE="<<Tango::DEV_STATE<< " Tango::DEV_BOOLEAN="<<Tango::DEV_BOOLEAN<< endl;
+	bool just_polling = false;
+	if(data_type == Tango::DEV_STATE || data_type == Tango::DEV_BOOLEAN || data_type == Tango::DEV_STRING)
+	{
+		just_polling = true;
+	}
+
+	if(!(*attr_SetCodePushedEvent_read || (*attr_SetPollingPeriod_read > 0 && (just_polling || *attr_SetAbsoluteEvent_read > 0 || *attr_SetRelativeEvent_read > 0 || *attr_SetPeriodEvent_read > 0))))
+	{
+		stringstream tmp;
+		tmp << "Event properties wrongly configured";
+		Tango::Except::throw_exception( \
+					(const char*)"Event properties wrongly configured", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	//------2: set attribute with event parameters-------------------------
+
+	vector<string> attrnames;
+	try
+	{
+		attrnames.push_back(attname);
+
+		//read actual attribute config
+		Tango::AttributeInfoListEx *attr_info_list_ex;
+		DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - before read attribute config attr="<<attname;
+		attr_info_list_ex = dp->get_attribute_config_ex(attrnames);
+		DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - read attribute config size=" << attr_info_list_ex->size() << endl;
+		bool changed=false;
+
+		for(Tango::AttributeInfoListEx::iterator it=attr_info_list_ex->begin(); it != attr_info_list_ex->end(); it++)
+		{
+			if(*attr_SetRelativeEvent_read != 0)
+			{
+				stringstream tmp;
+				tmp << *attr_SetRelativeEvent_read;
+				it->events.arch_event.archive_rel_change = tmp.str();
+				changed=true;
+				DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - setting archive_rel_change=" << tmp.str() << endl;
+			}
+			if(*attr_SetAbsoluteEvent_read != 0)
+			{
+				stringstream tmp;
+				tmp << *attr_SetAbsoluteEvent_read;
+				it->events.arch_event.archive_abs_change = tmp.str();
+				changed=true;
+				DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - setting archive_abs_change=" << tmp.str() << endl;
+			}
+			if(*attr_SetPeriodEvent_read > 0)
+			{
+				stringstream tmp;
+				tmp << *attr_SetPeriodEvent_read;
+				it->events.arch_event.archive_period = tmp.str();
+				changed=true;
+				DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - setting archive_period=" << tmp.str() << endl;
+			}
+		}
+		if(changed)
+			dp->set_attribute_config(*attr_info_list_ex);
+
+
+		DEBUG_STREAM<<"after  set_attribute_config";
+		//write polling only if changed
+		if(*attr_SetPollingPeriod_read != 0 && original_SetPollingPeriod != *attr_SetPollingPeriod_read)
+		{
+			dp->poll_attribute(attname,*attr_SetPollingPeriod_read);
+		}
+
+	} catch(Tango::DevFailed &e)
+	{
+		INFO_STREAM << "Error setting event config="<<e.errors[0].desc;
+	} catch(CORBA::SystemException &e)
+	{
+		INFO_STREAM << "Error CORBA::SystemException setting event config";
+	}
+	catch(...)
+	{
+	}
+	delete dp;
+	//------3: Configure DB------------------------------------------------
+	int res = mdb->configure_Attr(signame, data_type, data_format, write_type, *attr_SetTTL_read);
+	if(res < 0)
+	{
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					(const char*)"Configuration query error", \
+					(const char*)__func__, Tango::ERR);
+/*		Tango::DeviceData Din;
+		Din << signame;
+		itmapnew->second.dp->command_inout("AttributeRemove",Din);*/
+	}
+	//------4: Assign to existing EventSubscriber--------------------------
+	if(itmapnew->second.dp)
+	{
+		Tango::DeviceData Din;
+		Din << signame;
+		itmapnew->second.dp->command_inout("AttributeAdd",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmapnew->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_update
+}
+//--------------------------------------------------------
+/**
+ *	Command Context related method
+ *	Description: Set Context to all controlled archivers.
+ *
+ *	@param argin Context
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::context(Tango::DevUShort argin)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::Context()  - " << device_name << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::context) ENABLED START -----*/
+	
+	//	Add your own code
+	Tango::DevUChar context = argin;
+	Tango::DeviceAttribute Din("Context",context);
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		if(it->second.dp)
+			it->second.dp->write_attribute(Din);
+		else
+			INFO_STREAM << __func__ << ": unable to set context on " << it->first;
+	}
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::context
+}
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::add_dynamic_commands()
  *	Description : Create the dynamic commands if any
  *                for specified device.
@@ -2916,6 +3201,42 @@ void HdbConfigurationManager::string_explode(string str, string separator, vecto
 
 }
 #endif
+// //--------------------------------------------------------
+// /**
+//  *	Read attribute Context related method
+//  *	Description: Set/read context to all archivers controlled.
+//  *
+//  *	Data type:	Tango::DevUChar
+//  *	Attr type:	Scalar
+//  */
+// //--------------------------------------------------------
+// void HdbConfigurationManager::read_Context(Tango::Attribute &attr)
+// {
+// 	DEBUG_STREAM << "HdbConfigurationManager::read_Context(Tango::Attribute &attr) entering... " << endl;
+// 	//	Set the attribute value
+// 	attr.set_value(attr_Context_read);
+// 	
+// }
+
+// //--------------------------------------------------------
+// /**
+//  *	Write attribute Context related method
+//  *	Description: Set/read context to all archivers controlled.
+//  *
+//  *	Data type:	Tango::DevUChar
+//  *	Attr type:	Scalar
+//  */
+// //--------------------------------------------------------
+// void HdbConfigurationManager::write_Context(Tango::WAttribute &attr)
+// {
+// 	DEBUG_STREAM << "HdbConfigurationManager::write_Context(Tango::WAttribute &attr) entering... " << endl;
+// 	//	Retrieve write value
+// 	Tango::DevUChar	w_val;
+// 	attr.get_write_value(w_val);
+// 	
+// 	
+// }
+
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::namespace_ending
 } //	namespace
