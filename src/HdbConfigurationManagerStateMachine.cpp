@@ -438,6 +438,26 @@ bool HdbConfigurationManager::is_SetTTL_allowed(TANGO_UNUSED(Tango::AttReqType t
 
 //--------------------------------------------------------
 /**
+ *	Method      : HdbConfigurationManager::is_SetContext_allowed()
+ *	Description : Execution allowed for SetContext attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_SetContext_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for SetContext attribute in Write access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetContextStateAllowed_WRITE) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetContextStateAllowed_WRITE
+
+	//	Not any excluded states for SetContext attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetContextStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetContextStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
  *	Method      : HdbConfigurationManager::is_ArchiverList_allowed()
  *	Description : Execution allowed for ArchiverList attribute
  */
@@ -481,6 +501,22 @@ bool HdbConfigurationManager::is_ArchiverStatisticsResetTime_allowed(TANGO_UNUSE
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::ArchiverStatisticsResetTimeStateAllowed_READ) ENABLED START -----*/
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverStatisticsResetTimeStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_ArchiverContext_allowed()
+ *	Description : Execution allowed for ArchiverContext attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_ArchiverContext_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for ArchiverContext attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ArchiverContextStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ArchiverContextStateAllowed_READ
 	return true;
 }
 
@@ -666,6 +702,36 @@ bool HdbConfigurationManager::is_AttributePause_allowed(TANGO_UNUSED(const CORBA
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributePauseStateAllowed) ENABLED START -----*/
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributePauseStateAllowed
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_AttributeUpdate_allowed()
+ *	Description : Execution allowed for AttributeUpdate attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_AttributeUpdate_allowed(TANGO_UNUSED(const CORBA::Any &any))
+{
+	//	Not any excluded states for AttributeUpdate command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeUpdateStateAllowed) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeUpdateStateAllowed
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_Context_allowed()
+ *	Description : Execution allowed for Context attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_Context_allowed(TANGO_UNUSED(const CORBA::Any &any))
+{
+	//	Not any excluded states for Context command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ContextStateAllowed) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ContextStateAllowed
 	return true;
 }
 

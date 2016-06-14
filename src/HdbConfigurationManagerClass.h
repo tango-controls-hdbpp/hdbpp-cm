@@ -361,6 +361,21 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_SetTTL_allowed(ty);}
 };
 
+//	Attribute SetContext class definition
+class SetContextAttrib: public Tango::Attr
+{
+public:
+	SetContextAttrib():Attr("SetContext",
+			Tango::DEV_STRING, Tango::READ_WRITE) {};
+	~SetContextAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_SetContext(att);}
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->write_SetContext(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_SetContext_allowed(ty);}
+};
+
 //	Attribute ArchiverList class definition
 class ArchiverListAttrib: public Tango::SpectrumAttr
 {
@@ -398,6 +413,19 @@ public:
 		{(static_cast<HdbConfigurationManager *>(dev))->read_ArchiverStatisticsResetTime(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverStatisticsResetTime_allowed(ty);}
+};
+
+//	Attribute ArchiverContext class definition
+class ArchiverContextAttrib: public Tango::SpectrumAttr
+{
+public:
+	ArchiverContextAttrib():SpectrumAttr("ArchiverContext",
+			Tango::DEV_UCHAR, Tango::READ, 1000) {};
+	~ArchiverContextAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_ArchiverContext(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverContext_allowed(ty);}
 };
 
 
@@ -678,6 +706,52 @@ public:
 	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
 	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
 	{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributePause_allowed(any);}
+};
+
+//	Command AttributeUpdate class definition
+class AttributeUpdateClass : public Tango::Command
+{
+public:
+	AttributeUpdateClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out,
+				   const char        *in_desc,
+				   const char        *out_desc,
+				   Tango::DispLevel  level)
+	:Command(name,in,out,in_desc,out_desc, level)	{};
+
+	AttributeUpdateClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out)
+	:Command(name,in,out)	{};
+	~AttributeUpdateClass() {};
+	
+	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
+	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
+	{return (static_cast<HdbConfigurationManager *>(dev))->is_AttributeUpdate_allowed(any);}
+};
+
+//	Command Context class definition
+class ContextClass : public Tango::Command
+{
+public:
+	ContextClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out,
+				   const char        *in_desc,
+				   const char        *out_desc,
+				   Tango::DispLevel  level)
+	:Command(name,in,out,in_desc,out_desc, level)	{};
+
+	ContextClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out)
+	:Command(name,in,out)	{};
+	~ContextClass() {};
+	
+	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
+	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
+	{return (static_cast<HdbConfigurationManager *>(dev))->is_Context_allowed(any);}
 };
 
 

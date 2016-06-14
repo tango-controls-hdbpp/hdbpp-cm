@@ -96,6 +96,7 @@ protected:
 	vector<string> archiver_status_str;
 	vector<string> attribute_search_list_str;
 	vector<double> archiver_statistics_reset_time;
+	vector<uint8_t> archiver_context;
 
 	Tango::DevLong	original_SetPollingPeriod;
 
@@ -156,9 +157,11 @@ public:
 	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
 	Tango::DevLong	*attr_AttributePausedNumber_read;
 	Tango::DevULong	*attr_SetTTL_read;
+	Tango::DevString	*attr_SetContext_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
 	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
+	Tango::DevUChar	*attr_ArchiverContext_read;
 
 //	Constructors and destructors
 public:
@@ -438,6 +441,16 @@ public:
 	virtual void write_SetTTL(Tango::WAttribute &attr);
 	virtual bool is_SetTTL_allowed(Tango::AttReqType type);
 /**
+ *	Attribute SetContext related methods
+ *	Description: list of strategies separated with |
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Scalar
+ */
+	virtual void read_SetContext(Tango::Attribute &attr);
+	virtual void write_SetContext(Tango::WAttribute &attr);
+	virtual bool is_SetContext_allowed(Tango::AttReqType type);
+/**
  *	Attribute ArchiverList related methods
  *	Description: 
  *
@@ -464,6 +477,15 @@ public:
  */
 	virtual void read_ArchiverStatisticsResetTime(Tango::Attribute &attr);
 	virtual bool is_ArchiverStatisticsResetTime_allowed(Tango::AttReqType type);
+/**
+ *	Attribute ArchiverContext related methods
+ *	Description: Archiver context
+ *
+ *	Data type:	Tango::DevUChar
+ *	Attr type:	Spectrum max = 1000
+ */
+	virtual void read_ArchiverContext(Tango::Attribute &attr);
+	virtual bool is_ArchiverContext_allowed(Tango::AttReqType type);
 
 
 	//--------------------------------------------------------
@@ -577,6 +599,22 @@ public:
 	 */
 	virtual void attribute_pause(Tango::DevString argin);
 	virtual bool is_AttributePause_allowed(const CORBA::Any &any);
+	/**
+	 *	Command AttributeUpdate related method
+	 *	Description: Update strategies for an already archived attribute.
+	 *
+	 *	@param argin Attribute name, strategies
+	 */
+	virtual void attribute_update(const Tango::DevVarStringArray *argin);
+	virtual bool is_AttributeUpdate_allowed(const CORBA::Any &any);
+	/**
+	 *	Command Context related method
+	 *	Description: Set Context to all controlled archivers.
+	 *
+	 *	@param argin Context
+	 */
+	virtual void context(Tango::DevUShort argin);
+	virtual bool is_Context_allowed(const CORBA::Any &any);
 
 
 	//--------------------------------------------------------
