@@ -178,7 +178,8 @@ void HdbConfigurationManager::delete_device()
 	}
 	archiverMap.clear();
 	
-	delete mdb;
+	if(mdb)
+		delete mdb;
 
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::delete_device
 	delete[] attr_AttributeOKNumber_read;
@@ -292,14 +293,18 @@ void HdbConfigurationManager::init_device()
 		archiverMap.insert(make_pair(archname,tmp));
 	}
 
+	mdb = NULL;
 	try
 	{
 		mdb = new HdbClient(libConfiguration);
 	}
 	catch (Tango::DevFailed &err)
 	{
-		ERROR_STREAM << __func__ << ": error connecting DB: " << err.errors[0].desc << endl;
+		stringstream tmp;
+		tmp << "Error initializing Hdb++ library: " << err.errors[0].desc;
+		ERROR_STREAM << __func__ << ": " << tmp.str() << endl;
 		set_state(Tango::FAULT);
+		set_status(tmp.str());
 	}
 	
 #ifdef _USE_FERMI_DB_RW
@@ -534,8 +539,11 @@ void HdbConfigurationManager::always_executed_hook()
 			break;
 		}
 	}
-	set_state(stat);
-	set_status(status);
+	if(get_state() != Tango::FAULT)
+	{
+		set_state(stat);
+		set_status(status);
+	}
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::always_executed_hook
 }
@@ -1767,6 +1775,13 @@ void HdbConfigurationManager::attribute_add()
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::attribute_add) ENABLED START -----*/
 	
 	//	Add your own code
+	if(mdb == NULL)
+	{
+		Tango::Except::throw_exception( \
+					(const char*)"NO Hdb++ Library", \
+					(const char*)"Failed initialization of Hdb++ Library", \
+					(const char*)__func__, Tango::ERR);
+	}
 	string signame(*attr_SetAttributeName_read);
 	string archname = find_archiver(signame);
 
