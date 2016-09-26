@@ -152,7 +152,7 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="AttributeUpdate" description="Update strategies for an already archived attribute." execMethod="attribute_update" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
+    <commands name="SetAttributeStrategy" description="Update strategies for an already archived attribute." execMethod="set_attribute_strategy" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
       <argin description="Attribute name, strategies">
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argin>
@@ -161,12 +161,12 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="Context" description="Set Context to all controlled archivers." execMethod="context" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
-      <argin description="Context">
-        <type xsi:type="pogoDsl:UShortType"/>
+    <commands name="GetAttributeStrategy" description="" execMethod="get_attribute_strategy" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
+      <argin description="Attribute name">
+        <type xsi:type="pogoDsl:StringType"/>
       </argin>
-      <argout description="">
-        <type xsi:type="pogoDsl:VoidType"/>
+      <argout description="Strategy">
+        <type xsi:type="pogoDsl:StringType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -346,13 +346,21 @@
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="Time To Live for temporary storage in hours" label="" unit="hours" standardUnit="1" displayUnit="hours" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
-    <attributes name="SetContext" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+    <attributes name="SetStrategy" attType="Scalar" rwType="READ_WRITE" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
       <dataType xsi:type="pogoDsl:StringType"/>
       <changeEvent fire="false" libCheckCriteria="false"/>
       <archiveEvent fire="false" libCheckCriteria="false"/>
       <dataReadyEvent fire="false" libCheckCriteria="true"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="list of strategies separated with |" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <attributes name="Context" attType="Scalar" rwType="WRITE" displayLevel="EXPERT" polledPeriod="0" maxX="" maxY="" allocReadMember="false" isDynamic="false">
+      <dataType xsi:type="pogoDsl:StringType"/>
+      <changeEvent fire="false" libCheckCriteria="false"/>
+      <archiveEvent fire="false" libCheckCriteria="false"/>
+      <dataReadyEvent fire="false" libCheckCriteria="true"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
     <attributes name="ArchiverList" attType="Spectrum" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="1000" maxY="" allocReadMember="false" isDynamic="false">
       <dataType xsi:type="pogoDsl:StringType"/>
@@ -379,7 +387,7 @@
       <properties description="Seconds elapsed since last statistics reset" label="" unit="s" standardUnit="1" displayUnit="s" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
     <attributes name="ArchiverContext" attType="Spectrum" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="1000" maxY="" allocReadMember="true" isDynamic="false">
-      <dataType xsi:type="pogoDsl:UCharType"/>
+      <dataType xsi:type="pogoDsl:StringType"/>
       <changeEvent fire="false" libCheckCriteria="false"/>
       <archiveEvent fire="false" libCheckCriteria="false"/>
       <dataReadyEvent fire="false" libCheckCriteria="true"/>

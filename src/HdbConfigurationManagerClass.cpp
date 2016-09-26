@@ -394,7 +394,7 @@ CORBA::Any *AttributePauseClass::execute(Tango::DeviceImpl *device, const CORBA:
 
 //--------------------------------------------------------
 /**
- * method : 		AttributeUpdateClass::execute()
+ * method : 		SetAttributeStrategyClass::execute()
  * description : 	method to trigger the execution of the command.
  *
  * @param	device	The device on which the command must be executed
@@ -403,18 +403,18 @@ CORBA::Any *AttributePauseClass::execute(Tango::DeviceImpl *device, const CORBA:
  *	returns The command output data (packed in the Any object)
  */
 //--------------------------------------------------------
-CORBA::Any *AttributeUpdateClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+CORBA::Any *SetAttributeStrategyClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
 {
-	cout2 << "AttributeUpdateClass::execute(): arrived" << endl;
+	cout2 << "SetAttributeStrategyClass::execute(): arrived" << endl;
 	const Tango::DevVarStringArray *argin;
 	extract(in_any, argin);
-	((static_cast<HdbConfigurationManager *>(device))->attribute_update(argin));
+	((static_cast<HdbConfigurationManager *>(device))->set_attribute_strategy(argin));
 	return new CORBA::Any();
 }
 
 //--------------------------------------------------------
 /**
- * method : 		ContextClass::execute()
+ * method : 		GetAttributeStrategyClass::execute()
  * description : 	method to trigger the execution of the command.
  *
  * @param	device	The device on which the command must be executed
@@ -423,13 +423,12 @@ CORBA::Any *AttributeUpdateClass::execute(Tango::DeviceImpl *device, const CORBA
  *	returns The command output data (packed in the Any object)
  */
 //--------------------------------------------------------
-CORBA::Any *ContextClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+CORBA::Any *GetAttributeStrategyClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
 {
-	cout2 << "ContextClass::execute(): arrived" << endl;
-	Tango::DevUShort argin;
+	cout2 << "GetAttributeStrategyClass::execute(): arrived" << endl;
+	Tango::DevString argin;
 	extract(in_any, argin);
-	((static_cast<HdbConfigurationManager *>(device))->context(argin));
-	return new CORBA::Any();
+	return insert((static_cast<HdbConfigurationManager *>(device))->get_attribute_strategy(argin));
 }
 
 
@@ -1353,29 +1352,53 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(setttl);
 
-	//	Attribute : SetContext
-	SetContextAttrib	*setcontext = new SetContextAttrib();
-	Tango::UserDefaultAttrProp	setcontext_prop;
-	setcontext_prop.set_description("list of strategies separated with |");
-	//	label	not set for SetContext
-	//	unit	not set for SetContext
-	//	standard_unit	not set for SetContext
-	//	display_unit	not set for SetContext
-	//	format	not set for SetContext
-	//	max_value	not set for SetContext
-	//	min_value	not set for SetContext
-	//	max_alarm	not set for SetContext
-	//	min_alarm	not set for SetContext
-	//	max_warning	not set for SetContext
-	//	min_warning	not set for SetContext
-	//	delta_t	not set for SetContext
-	//	delta_val	not set for SetContext
+	//	Attribute : SetStrategy
+	SetStrategyAttrib	*setstrategy = new SetStrategyAttrib();
+	Tango::UserDefaultAttrProp	setstrategy_prop;
+	setstrategy_prop.set_description("list of strategies separated with |");
+	//	label	not set for SetStrategy
+	//	unit	not set for SetStrategy
+	//	standard_unit	not set for SetStrategy
+	//	display_unit	not set for SetStrategy
+	//	format	not set for SetStrategy
+	//	max_value	not set for SetStrategy
+	//	min_value	not set for SetStrategy
+	//	max_alarm	not set for SetStrategy
+	//	min_alarm	not set for SetStrategy
+	//	max_warning	not set for SetStrategy
+	//	min_warning	not set for SetStrategy
+	//	delta_t	not set for SetStrategy
+	//	delta_val	not set for SetStrategy
 	
-	setcontext->set_default_properties(setcontext_prop);
+	setstrategy->set_default_properties(setstrategy_prop);
 	//	Not Polled
-	setcontext->set_disp_level(Tango::OPERATOR);
+	setstrategy->set_disp_level(Tango::OPERATOR);
 	//	Not Memorized
-	att_list.push_back(setcontext);
+	att_list.push_back(setstrategy);
+
+	//	Attribute : Context
+	ContextAttrib	*context = new ContextAttrib();
+	Tango::UserDefaultAttrProp	context_prop;
+	//	description	not set for Context
+	//	label	not set for Context
+	//	unit	not set for Context
+	//	standard_unit	not set for Context
+	//	display_unit	not set for Context
+	//	format	not set for Context
+	//	max_value	not set for Context
+	//	min_value	not set for Context
+	//	max_alarm	not set for Context
+	//	min_alarm	not set for Context
+	//	max_warning	not set for Context
+	//	min_warning	not set for Context
+	//	delta_t	not set for Context
+	//	delta_val	not set for Context
+	
+	context->set_default_properties(context_prop);
+	//	Not Polled
+	context->set_disp_level(Tango::EXPERT);
+	//	Not Memorized
+	att_list.push_back(context);
 
 	//	Attribute : ArchiverList
 	ArchiverListAttrib	*archiverlist = new ArchiverListAttrib();
@@ -1626,23 +1649,23 @@ void HdbConfigurationManagerClass::command_factory()
 			Tango::OPERATOR);
 	command_list.push_back(pAttributePauseCmd);
 
-	//	Command AttributeUpdate
-	AttributeUpdateClass	*pAttributeUpdateCmd =
-		new AttributeUpdateClass("AttributeUpdate",
+	//	Command SetAttributeStrategy
+	SetAttributeStrategyClass	*pSetAttributeStrategyCmd =
+		new SetAttributeStrategyClass("SetAttributeStrategy",
 			Tango::DEVVAR_STRINGARRAY, Tango::DEV_VOID,
 			"Attribute name, strategies",
 			"",
 			Tango::OPERATOR);
-	command_list.push_back(pAttributeUpdateCmd);
+	command_list.push_back(pSetAttributeStrategyCmd);
 
-	//	Command Context
-	ContextClass	*pContextCmd =
-		new ContextClass("Context",
-			Tango::DEV_USHORT, Tango::DEV_VOID,
-			"Context",
-			"",
+	//	Command GetAttributeStrategy
+	GetAttributeStrategyClass	*pGetAttributeStrategyCmd =
+		new GetAttributeStrategyClass("GetAttributeStrategy",
+			Tango::DEV_STRING, Tango::DEV_STRING,
+			"Attribute name",
+			"Strategy",
 			Tango::OPERATOR);
-	command_list.push_back(pContextCmd);
+	command_list.push_back(pGetAttributeStrategyCmd);
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::command_factory_after) ENABLED START -----*/
 	

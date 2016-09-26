@@ -96,7 +96,7 @@ protected:
 	vector<string> archiver_status_str;
 	vector<string> attribute_search_list_str;
 	vector<double> archiver_statistics_reset_time;
-	vector<uint8_t> archiver_context;
+	vector<string> archiver_context_str;
 
 	Tango::DevLong	original_SetPollingPeriod;
 
@@ -157,11 +157,11 @@ public:
 	Tango::DevLong	*attr_AttributeMaxPendingNumber_read;
 	Tango::DevLong	*attr_AttributePausedNumber_read;
 	Tango::DevULong	*attr_SetTTL_read;
-	Tango::DevString	*attr_SetContext_read;
+	Tango::DevString	*attr_SetStrategy_read;
 	Tango::DevString	*attr_ArchiverList_read;
 	Tango::DevString	*attr_ArchiverStatus_read;
 	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
-	Tango::DevUChar	*attr_ArchiverContext_read;
+	Tango::DevString	*attr_ArchiverContext_read;
 
 //	Constructors and destructors
 public:
@@ -441,15 +441,24 @@ public:
 	virtual void write_SetTTL(Tango::WAttribute &attr);
 	virtual bool is_SetTTL_allowed(Tango::AttReqType type);
 /**
- *	Attribute SetContext related methods
+ *	Attribute SetStrategy related methods
  *	Description: list of strategies separated with |
  *
  *	Data type:	Tango::DevString
  *	Attr type:	Scalar
  */
-	virtual void read_SetContext(Tango::Attribute &attr);
-	virtual void write_SetContext(Tango::WAttribute &attr);
-	virtual bool is_SetContext_allowed(Tango::AttReqType type);
+	virtual void read_SetStrategy(Tango::Attribute &attr);
+	virtual void write_SetStrategy(Tango::WAttribute &attr);
+	virtual bool is_SetStrategy_allowed(Tango::AttReqType type);
+/**
+ *	Attribute Context related methods
+ *	Description: 
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Scalar
+ */
+	virtual void write_Context(Tango::WAttribute &attr);
+	virtual bool is_Context_allowed(Tango::AttReqType type);
 /**
  *	Attribute ArchiverList related methods
  *	Description: 
@@ -481,7 +490,7 @@ public:
  *	Attribute ArchiverContext related methods
  *	Description: Archiver context
  *
- *	Data type:	Tango::DevUChar
+ *	Data type:	Tango::DevString
  *	Attr type:	Spectrum max = 1000
  */
 	virtual void read_ArchiverContext(Tango::Attribute &attr);
@@ -600,21 +609,22 @@ public:
 	virtual void attribute_pause(Tango::DevString argin);
 	virtual bool is_AttributePause_allowed(const CORBA::Any &any);
 	/**
-	 *	Command AttributeUpdate related method
+	 *	Command SetAttributeStrategy related method
 	 *	Description: Update strategies for an already archived attribute.
 	 *
 	 *	@param argin Attribute name, strategies
 	 */
-	virtual void attribute_update(const Tango::DevVarStringArray *argin);
-	virtual bool is_AttributeUpdate_allowed(const CORBA::Any &any);
+	virtual void set_attribute_strategy(const Tango::DevVarStringArray *argin);
+	virtual bool is_SetAttributeStrategy_allowed(const CORBA::Any &any);
 	/**
-	 *	Command Context related method
-	 *	Description: Set Context to all controlled archivers.
+	 *	Command GetAttributeStrategy related method
+	 *	Description: 
 	 *
-	 *	@param argin Context
+	 *	@param argin Attribute name
+	 *	@returns Strategy
 	 */
-	virtual void context(Tango::DevUShort argin);
-	virtual bool is_Context_allowed(const CORBA::Any &any);
+	virtual Tango::DevString get_attribute_strategy(Tango::DevString argin);
+	virtual bool is_GetAttributeStrategy_allowed(const CORBA::Any &any);
 
 
 	//--------------------------------------------------------
