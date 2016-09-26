@@ -438,21 +438,37 @@ bool HdbConfigurationManager::is_SetTTL_allowed(TANGO_UNUSED(Tango::AttReqType t
 
 //--------------------------------------------------------
 /**
- *	Method      : HdbConfigurationManager::is_SetContext_allowed()
- *	Description : Execution allowed for SetContext attribute
+ *	Method      : HdbConfigurationManager::is_SetStrategy_allowed()
+ *	Description : Execution allowed for SetStrategy attribute
  */
 //--------------------------------------------------------
-bool HdbConfigurationManager::is_SetContext_allowed(TANGO_UNUSED(Tango::AttReqType type))
+bool HdbConfigurationManager::is_SetStrategy_allowed(TANGO_UNUSED(Tango::AttReqType type))
 {
-	//	Not any excluded states for SetContext attribute in Write access.
-	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetContextStateAllowed_WRITE) ENABLED START -----*/
+	//	Not any excluded states for SetStrategy attribute in Write access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetStrategyStateAllowed_WRITE) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetContextStateAllowed_WRITE
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetStrategyStateAllowed_WRITE
 
-	//	Not any excluded states for SetContext attribute in read access.
-	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetContextStateAllowed_READ) ENABLED START -----*/
+	//	Not any excluded states for SetStrategy attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetStrategyStateAllowed_READ) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetContextStateAllowed_READ
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetStrategyStateAllowed_READ
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_Context_allowed()
+ *	Description : Execution allowed for Context attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_Context_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for Context attribute in Write access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ContextStateAllowed_WRITE) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ContextStateAllowed_WRITE
+
 	return true;
 }
 
@@ -707,31 +723,31 @@ bool HdbConfigurationManager::is_AttributePause_allowed(TANGO_UNUSED(const CORBA
 
 //--------------------------------------------------------
 /**
- *	Method      : HdbConfigurationManager::is_AttributeUpdate_allowed()
- *	Description : Execution allowed for AttributeUpdate attribute
+ *	Method      : HdbConfigurationManager::is_SetAttributeStrategy_allowed()
+ *	Description : Execution allowed for SetAttributeStrategy attribute
  */
 //--------------------------------------------------------
-bool HdbConfigurationManager::is_AttributeUpdate_allowed(TANGO_UNUSED(const CORBA::Any &any))
+bool HdbConfigurationManager::is_SetAttributeStrategy_allowed(TANGO_UNUSED(const CORBA::Any &any))
 {
-	//	Not any excluded states for AttributeUpdate command.
-	/*----- PROTECTED REGION ID(HdbConfigurationManager::AttributeUpdateStateAllowed) ENABLED START -----*/
+	//	Not any excluded states for SetAttributeStrategy command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetAttributeStrategyStateAllowed) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::AttributeUpdateStateAllowed
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetAttributeStrategyStateAllowed
 	return true;
 }
 
 //--------------------------------------------------------
 /**
- *	Method      : HdbConfigurationManager::is_Context_allowed()
- *	Description : Execution allowed for Context attribute
+ *	Method      : HdbConfigurationManager::is_GetAttributeStrategy_allowed()
+ *	Description : Execution allowed for GetAttributeStrategy attribute
  */
 //--------------------------------------------------------
-bool HdbConfigurationManager::is_Context_allowed(TANGO_UNUSED(const CORBA::Any &any))
+bool HdbConfigurationManager::is_GetAttributeStrategy_allowed(TANGO_UNUSED(const CORBA::Any &any))
 {
-	//	Not any excluded states for Context command.
-	/*----- PROTECTED REGION ID(HdbConfigurationManager::ContextStateAllowed) ENABLED START -----*/
+	//	Not any excluded states for GetAttributeStrategy command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::GetAttributeStrategyStateAllowed) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ContextStateAllowed
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::GetAttributeStrategyStateAllowed
 	return true;
 }
 
