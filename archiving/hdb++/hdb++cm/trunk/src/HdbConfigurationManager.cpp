@@ -1580,12 +1580,33 @@ void HdbConfigurationManager::write_Context(Tango::WAttribute &attr)
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_Context) ENABLED START -----*/
 	string context(w_val);
 	Tango::DeviceAttribute Din("Context",context);
+	Tango::Group *archivers = new Tango::Group("archivers");
+	Tango::GroupReply::enable_exception(true);
 	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
 	{
-		if(it->second.dp)
-			it->second.dp->write_attribute(Din);
-		else
-			INFO_STREAM << __func__ << ": unable to set context on " << it->first;
+		archivers->add(it->first);
+	}
+	Tango::GroupReplyList resp = archivers->write_attribute(Din);
+	delete archivers;
+	if(resp.has_failed())
+	{
+		stringstream tmp;
+		tmp << "Some Errors writing context:" << endl;
+		for(size_t i=0; i<resp.size(); i++)
+		{
+			if(resp[i].has_failed())
+			{
+				tmp << resp[i].dev_name() << " ERROR = " << resp[i].get_err_stack ()[0].desc << endl;
+			}
+			else
+			{
+				tmp << resp[i].dev_name() << " WRITE OK" << endl;
+			}
+		}
+		Tango::Except::throw_exception( \
+					(const char*)"Archiver Context Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
 	}
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_Context
