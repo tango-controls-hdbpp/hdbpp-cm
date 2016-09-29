@@ -89,8 +89,8 @@
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
-    <commands name="AttributeAssign" description="Assigne attribute to archiver" execMethod="attribute_assign" displayLevel="OPERATOR" polledPeriod="0">
-      <argin description="[0]: Attribute name&#xA;[1]: Archiver name">
+    <commands name="AttributeAssign" description="Assigne attribute to archiver.&#xA;If Strategy is not specified use DefaultStrategy of the target archiver." execMethod="attribute_assign" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
+      <argin description="[0]: Attribute name&#xA;[1]: Archiver name&#xA;[2]: Attribute Strategy">
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argin>
       <argout description="">

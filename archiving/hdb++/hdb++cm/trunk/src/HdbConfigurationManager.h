@@ -551,10 +551,12 @@ public:
 	virtual bool is_ArchiverAdd_allowed(const CORBA::Any &any);
 	/**
 	 *	Command AttributeAssign related method
-	 *	Description: Assigne attribute to archiver
+	 *	Description: Assigne attribute to archiver.
+	 *               If Strategy is not specified use DefaultStrategy of the target archiver.
 	 *
 	 *	@param argin [0]: Attribute name
 	 *               [1]: Archiver name
+	 *               [2]: Attribute Strategy
 	 */
 	virtual void attribute_assign(const Tango::DevVarStringArray *argin);
 	virtual bool is_AttributeAssign_allowed(const CORBA::Any &any);
