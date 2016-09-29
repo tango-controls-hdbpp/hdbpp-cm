@@ -2207,10 +2207,12 @@ void HdbConfigurationManager::archiver_add(Tango::DevString argin)
 //--------------------------------------------------------
 /**
  *	Command AttributeAssign related method
- *	Description: Assigne attribute to archiver
+ *	Description: Assigne attribute to archiver.
+ *               If Strategy is not specified use DefaultStrategy of the target archiver.
  *
  *	@param argin [0]: Attribute name
  *               [1]: Archiver name
+ *               [2]: Attribute Strategy
  */
 //--------------------------------------------------------
 void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *argin)
