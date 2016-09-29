@@ -2219,15 +2219,16 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::attribute_assign) ENABLED START -----*/
 	
 	//	Add your own code
-	if(argin->length() != 2)
+	if(argin->length() < 2)
 		Tango::Except::throw_exception( \
 					(const char*)"Bad parameters", \
-					(const char*)"Needed 2 parameters", \
+					(const char*)"Needed at least 2 parameters", \
 					(const char*)__func__, Tango::ERR);
 	string signame((*argin)[0]);
 	string archname((*argin)[1]);
 	fix_tango_host(signame);
 	fix_tango_host(archname);
+	string strategy("");
 
 	archiver_map_t::iterator itmapnew = archiverMap.find(archname);
 	if(itmapnew == archiverMap.end())
@@ -2267,10 +2268,17 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 		{
 			if(signame.length() != 0 && !compare_tango_names(*itattr,signame) && !compare_tango_names(signame,*itattr))	//compare -> '<' -> want *itattr==signame
 			{
-				string status;
-				Tango::DeviceData Din;
-				Din << signame;
-				itmap->second.dp->command_inout("AttributeRemove",Din);
+				if(argin->length() == 2)
+				{
+					Tango::DeviceData Din1, Dout;
+					Din1 << signame;
+					Dout = itmap->second.dp->command_inout("GetAttributeStrategy",Din1);
+					Dout >> strategy;
+				}
+
+				Tango::DeviceData Din2;
+				Din2 << signame;
+				itmap->second.dp->command_inout("AttributeRemove",Din2);
 				itmap = archiverMap.end();
 				removed = true;
 				break;
@@ -2288,8 +2296,25 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 	}
 	if(itmapnew->second.dp)
 	{
+		if(argin->length() > 2)
+		{
+			for(size_t i = 0; i < argin->length() -2; i++)
+			{
+				string context((*argin)[i+2]);
+				if(context.length() > 0)
+				{
+					strategy += context;
+					if(i != argin->length() -3)
+						strategy += string("|");
+				}
+			}
+		}
+		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
-		Din << signame;
+		add_argin.length(2);
+		add_argin[0] = CORBA::string_dup(signame.c_str());
+		add_argin[1] = CORBA::string_dup(strategy.c_str());
+		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
 	}
 	else
@@ -2646,7 +2671,7 @@ void HdbConfigurationManager::set_attribute_strategy(const Tango::DevVarStringAr
 		if(context.length() > 0)
 		{
 			v_contexts += context;
-			if(i != argin->length() -1)
+			if(i != argin->length() -2)
 				v_contexts += "|";
 		}
 	}
