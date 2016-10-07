@@ -106,6 +106,7 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  ArchiverStatus               |  Tango::DevString	Spectrum  ( max = 1000)
 //  ArchiverStatisticsResetTime  |  Tango::DevDouble	Spectrum  ( max = 1000)
 //  ArchiverContext              |  Tango::DevString	Spectrum  ( max = 1000)
+//  ContextsList                 |  Tango::DevString	Spectrum  ( max = 1000)
 //================================================================
 
 namespace HdbConfigurationManager_ns
@@ -114,6 +115,50 @@ namespace HdbConfigurationManager_ns
 
 //	static initializations
 map<string, string> HdbConfigurationManager::domain_map;
+
+typedef std::vector<string> Vec;
+struct Contained
+{
+    Vec &_sequence;
+    Vec _sequence2;
+    Contained(Vec &vec) : _sequence(vec){
+    	Vec _sequence_upper(vec);
+    	for(Vec::iterator it = _sequence_upper.begin(); it!=_sequence_upper.end(); it++)
+    	{
+    		string result("");
+   			string::size_type found;
+   			string separator(":");
+   			found = it->find_first_of(separator);
+    		if(found != string::npos) {
+    			if(found > 0) {
+    				result = it->substr(0,found);
+    			}
+    		}
+    		else if(it->length() > 0) {
+    			result = *it;
+    		}
+    		std::transform(result.begin(), result.end(), result.begin(), (int(*)(int))toupper);
+    		_sequence2.push_back(result);
+    	}
+    }
+    bool operator()(string i) const
+    {
+		string result("");
+		string::size_type found;
+		string separator(":");
+		found = i.find_first_of(separator);
+		if(found != string::npos) {
+			if(found > 0) {
+				result = i.substr(0,found);
+			}
+		}
+		else if(i.length() > 0) {
+			result = i;
+		}
+    	std::transform(result.begin(), result.end(), result.begin(), (int(*)(int))toupper);
+        return _sequence2.end() != std::find(_sequence2.begin(), _sequence2.end(), result);
+    }
+};
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::namespace_starting
 
@@ -207,6 +252,7 @@ void HdbConfigurationManager::delete_device()
 	delete[] attr_SetTTL_read;
 	delete[] attr_SetStrategy_read;
 	delete[] attr_ArchiverContext_read;
+	delete[] attr_ContextsList_read;
 }
 
 //--------------------------------------------------------
@@ -260,6 +306,7 @@ void HdbConfigurationManager::init_device()
 	attr_SetTTL_read = new Tango::DevULong[1];
 	attr_SetStrategy_read = new Tango::DevString[1];
 	attr_ArchiverContext_read = new Tango::DevString[1000];
+	attr_ContextsList_read = new Tango::DevString[1000];
 	//	No longer if mandatory property not set. 
 	if (mandatoryNotDefined)
 		return;
@@ -1793,6 +1840,49 @@ void HdbConfigurationManager::read_ArchiverContext(Tango::Attribute &attr)
 		attr_ArchiverContext_read[i] = (char *)archiver_context_str[i].c_str();
 	attr.set_value(attr_ArchiverContext_read, archiver_context_str.size());
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ArchiverContext
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute ContextsList related method
+ *	Description: 
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Spectrum max = 1000
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::read_ContextsList(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::read_ContextsList(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::read_ContextsList) ENABLED START -----*/
+	//	Set the attribute value
+	contexts_list_str.clear();
+	for(archiver_map_t::iterator it = archiverMap.begin(); it != archiverMap.end(); it++)
+	{
+		//stringstream arch_status;
+		//arch_status << it->first;
+		vector<string> contexts_list;
+		if(it->second.dp)
+		{
+			try
+			{
+				Tango::DeviceAttribute Dout;
+				Dout = it->second.dp->read_attribute("ContextsList");
+				Dout >> contexts_list;
+			}
+			catch(Tango::DevFailed &e)
+			{
+			}
+		}
+		std::remove_copy_if(contexts_list.begin(), contexts_list.end(), back_inserter(contexts_list_str), Contained(contexts_list_str));
+	}
+	if(attr_ContextsList_read != NULL)
+		delete [] attr_ContextsList_read;
+	attr_ContextsList_read = new Tango::DevString[contexts_list_str.size()];
+	for (unsigned int i=0 ; i<contexts_list_str.size() ; i++)
+		attr_ContextsList_read[i] = (char *)contexts_list_str[i].c_str();
+	attr.set_value(attr_ContextsList_read, contexts_list_str.size());
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::read_ContextsList
 }
 
 //--------------------------------------------------------

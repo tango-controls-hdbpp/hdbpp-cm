@@ -441,6 +441,19 @@ public:
 		{return (static_cast<HdbConfigurationManager *>(dev))->is_ArchiverContext_allowed(ty);}
 };
 
+//	Attribute ContextsList class definition
+class ContextsListAttrib: public Tango::SpectrumAttr
+{
+public:
+	ContextsListAttrib():SpectrumAttr("ContextsList",
+			Tango::DEV_STRING, Tango::READ, 1000) {};
+	~ContextsListAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<HdbConfigurationManager *>(dev))->read_ContextsList(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<HdbConfigurationManager *>(dev))->is_ContextsList_allowed(ty);}
+};
+
 
 //=========================================
 //	Define classes for commands
