@@ -536,6 +536,22 @@ bool HdbConfigurationManager::is_ArchiverContext_allowed(TANGO_UNUSED(Tango::Att
 	return true;
 }
 
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_ContextsList_allowed()
+ *	Description : Execution allowed for ContextsList attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_ContextsList_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for ContextsList attribute in read access.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::ContextsListStateAllowed_READ) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::ContextsListStateAllowed_READ
+	return true;
+}
+
 
 //=================================================
 //		Commands Allowed Methods

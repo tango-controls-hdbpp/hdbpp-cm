@@ -97,6 +97,7 @@ protected:
 	vector<string> attribute_search_list_str;
 	vector<double> archiver_statistics_reset_time;
 	vector<string> archiver_context_str;
+	vector<string> contexts_list_str;
 
 	Tango::DevLong	original_SetPollingPeriod;
 
@@ -162,6 +163,7 @@ public:
 	Tango::DevString	*attr_ArchiverStatus_read;
 	Tango::DevDouble	*attr_ArchiverStatisticsResetTime_read;
 	Tango::DevString	*attr_ArchiverContext_read;
+	Tango::DevString	*attr_ContextsList_read;
 
 //	Constructors and destructors
 public:
@@ -495,6 +497,15 @@ public:
  */
 	virtual void read_ArchiverContext(Tango::Attribute &attr);
 	virtual bool is_ArchiverContext_allowed(Tango::AttReqType type);
+/**
+ *	Attribute ContextsList related methods
+ *	Description: 
+ *
+ *	Data type:	Tango::DevString
+ *	Attr type:	Spectrum max = 1000
+ */
+	virtual void read_ContextsList(Tango::Attribute &attr);
+	virtual bool is_ContextsList_allowed(Tango::AttReqType type);
 
 
 	//--------------------------------------------------------

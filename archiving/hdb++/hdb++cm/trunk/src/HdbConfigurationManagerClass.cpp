@@ -1496,6 +1496,30 @@ void HdbConfigurationManagerClass::attribute_factory(vector<Tango::Attr *> &att_
 	//	Not Memorized
 	att_list.push_back(archivercontext);
 
+	//	Attribute : ContextsList
+	ContextsListAttrib	*contextslist = new ContextsListAttrib();
+	Tango::UserDefaultAttrProp	contextslist_prop;
+	//	description	not set for ContextsList
+	//	label	not set for ContextsList
+	//	unit	not set for ContextsList
+	//	standard_unit	not set for ContextsList
+	//	display_unit	not set for ContextsList
+	//	format	not set for ContextsList
+	//	max_value	not set for ContextsList
+	//	min_value	not set for ContextsList
+	//	max_alarm	not set for ContextsList
+	//	min_alarm	not set for ContextsList
+	//	max_warning	not set for ContextsList
+	//	min_warning	not set for ContextsList
+	//	delta_t	not set for ContextsList
+	//	delta_val	not set for ContextsList
+	
+	contextslist->set_default_properties(contextslist_prop);
+	//	Not Polled
+	contextslist->set_disp_level(Tango::EXPERT);
+	//	Not Memorized
+	att_list.push_back(contextslist);
+
 
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
