@@ -1,4 +1,4 @@
-# raritanpdu
+# hdbpp-cm
 Tango device server for the HDB++ Configuration Manager
 
 ## building
