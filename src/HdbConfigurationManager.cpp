@@ -587,7 +587,7 @@ void HdbConfigurationManager::always_executed_hook()
 			break;
 		}
 	}
-	if(stat != Tango::FAULT)
+	if(get_state() != stat)
 	{
 		set_state(stat);
 		set_status(status);
