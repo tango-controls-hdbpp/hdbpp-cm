@@ -2,7 +2,7 @@
 Tango device server for the HDB++ Configuration Manager
 
 ## building
-git clone --recursive http://github.com/ELETTRA-SincrotroneTrieste/hdbpp-cm.git  
+git clone --recursive http://github.com/tango-controls/hdbpp-cm.git  
 cd hdbpp-cm  
 export TANGO_DIR=/usr/local/tango-9.2.5a  
 export OMNIORB_DIR=/usr/local/omniorb-4.2.1  
