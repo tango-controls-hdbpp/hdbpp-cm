@@ -767,6 +767,36 @@ bool HdbConfigurationManager::is_GetAttributeStrategy_allowed(TANGO_UNUSED(const
 	return true;
 }
 
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_SetAttributeTTL_allowed()
+ *	Description : Execution allowed for SetAttributeTTL attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_SetAttributeTTL_allowed(TANGO_UNUSED(const CORBA::Any &any))
+{
+	//	Not any excluded states for SetAttributeTTL command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::SetAttributeTTLStateAllowed) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::SetAttributeTTLStateAllowed
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : HdbConfigurationManager::is_GetAttributeTTL_allowed()
+ *	Description : Execution allowed for GetAttributeTTL attribute
+ */
+//--------------------------------------------------------
+bool HdbConfigurationManager::is_GetAttributeTTL_allowed(TANGO_UNUSED(const CORBA::Any &any))
+{
+	//	Not any excluded states for GetAttributeTTL command.
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::GetAttributeTTLStateAllowed) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::GetAttributeTTLStateAllowed
+	return true;
+}
+
 
 /*----- PROTECTED REGION ID(HdbConfigurationManager::HdbConfigurationManagerStateAllowed.AdditionalMethods) ENABLED START -----*/
 

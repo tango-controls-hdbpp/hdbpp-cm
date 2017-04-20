@@ -431,6 +431,45 @@ CORBA::Any *GetAttributeStrategyClass::execute(Tango::DeviceImpl *device, const 
 	return insert((static_cast<HdbConfigurationManager *>(device))->get_attribute_strategy(argin));
 }
 
+//--------------------------------------------------------
+/**
+ * method : 		SetAttributeTTLClass::execute()
+ * description : 	method to trigger the execution of the command.
+ *
+ * @param	device	The device on which the command must be executed
+ * @param	in_any	The command input data
+ *
+ *	returns The command output data (packed in the Any object)
+ */
+//--------------------------------------------------------
+CORBA::Any *SetAttributeTTLClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+{
+	cout2 << "SetAttributeTTLClass::execute(): arrived" << endl;
+	const Tango::DevVarStringArray *argin;
+	extract(in_any, argin);
+	((static_cast<HdbConfigurationManager *>(device))->set_attribute_ttl(argin));
+	return new CORBA::Any();
+}
+
+//--------------------------------------------------------
+/**
+ * method : 		GetAttributeTTLClass::execute()
+ * description : 	method to trigger the execution of the command.
+ *
+ * @param	device	The device on which the command must be executed
+ * @param	in_any	The command input data
+ *
+ *	returns The command output data (packed in the Any object)
+ */
+//--------------------------------------------------------
+CORBA::Any *GetAttributeTTLClass::execute(Tango::DeviceImpl *device, const CORBA::Any &in_any)
+{
+	cout2 << "GetAttributeTTLClass::execute(): arrived" << endl;
+	Tango::DevString argin;
+	extract(in_any, argin);
+	return insert((static_cast<HdbConfigurationManager *>(device))->get_attribute_ttl(argin));
+}
+
 
 //===================================================================
 //	Properties management
@@ -651,104 +690,6 @@ void HdbConfigurationManagerClass::write_class_property()
 	str_desc.push_back("");
 	description << str_desc;
 	data.push_back(description);
-
-	//	put cvs or svn location
-	string	filename("HdbConfigurationManager");
-	filename += "Class.cpp";
-
-	// check for cvs information
-	string	src_path(CvsPath);
-	start = src_path.find("/");
-	if (start!=string::npos)
-	{
-		end   = src_path.find(filename);
-		if (end>start)
-		{
-			string	strloc = src_path.substr(start, end-start);
-			//	Check if specific repository
-			start = strloc.find("/cvsroot/");
-			if (start!=string::npos && start>0)
-			{
-				string	repository = strloc.substr(0, start);
-				if (repository.find("/segfs/")!=string::npos)
-					strloc = "ESRF:" + strloc.substr(start, strloc.length()-start);
-			}
-			Tango::DbDatum	cvs_loc("cvs_location");
-			cvs_loc << strloc;
-			data.push_back(cvs_loc);
-		}
-	}
-
-	// check for svn information
-	else
-	{
-		string	src_path(SvnPath);
-		start = src_path.find("://");
-		if (start!=string::npos)
-		{
-			end = src_path.find(filename);
-			if (end>start)
-			{
-				header = "$HeadURL: ";
-				start = header.length();
-				string	strloc = src_path.substr(start, (end-start));
-				
-				Tango::DbDatum	svn_loc("svn_location");
-				svn_loc << strloc;
-				data.push_back(svn_loc);
-			}
-		}
-	}
-
-	//	Get CVS or SVN revision tag
-	
-	// CVS tag
-	string	tagname(TagName);
-	header = "$Name: ";
-	start = header.length();
-	string	endstr(" $");
-	
-	end   = tagname.find(endstr);
-	if (end!=string::npos && end>start)
-	{
-		string	strtag = tagname.substr(start, end-start);
-		Tango::DbDatum	cvs_tag("cvs_tag");
-		cvs_tag << strtag;
-		data.push_back(cvs_tag);
-	}
-	
-	// SVN tag
-	string	svnpath(SvnPath);
-	header = "$HeadURL: ";
-	start = header.length();
-	
-	end   = svnpath.find(endstr);
-	if (end!=string::npos && end>start)
-	{
-		string	strloc = svnpath.substr(start, end-start);
-		
-		string tagstr ("/tags/");
-		start = strloc.find(tagstr);
-		if ( start!=string::npos )
-		{
-			start = start + tagstr.length();
-			end   = strloc.find(filename);
-			string	strtag = strloc.substr(start, end-start-1);
-			
-			Tango::DbDatum	svn_tag("svn_tag");
-			svn_tag << strtag;
-			data.push_back(svn_tag);
-		}
-	}
-
-	//	Get URL location
-	string	httpServ(HttpServer);
-	if (httpServ.length()>0)
-	{
-		Tango::DbDatum	db_doc_url("doc_url");
-		db_doc_url << httpServ;
-		data.push_back(db_doc_url);
-	}
 
 	//  Put inheritance
 	Tango::DbDatum	inher_datum("InheritedFrom");
@@ -1690,6 +1631,24 @@ void HdbConfigurationManagerClass::command_factory()
 			"Strategy",
 			Tango::OPERATOR);
 	command_list.push_back(pGetAttributeStrategyCmd);
+
+	//	Command SetAttributeTTL
+	SetAttributeTTLClass	*pSetAttributeTTLCmd =
+		new SetAttributeTTLClass("SetAttributeTTL",
+			Tango::DEVVAR_STRINGARRAY, Tango::DEV_VOID,
+			"Attribute name, ttl",
+			"",
+			Tango::OPERATOR);
+	command_list.push_back(pSetAttributeTTLCmd);
+
+	//	Command GetAttributeTTL
+	GetAttributeTTLClass	*pGetAttributeTTLCmd =
+		new GetAttributeTTLClass("GetAttributeTTL",
+			Tango::DEV_STRING, Tango::DEV_ULONG,
+			"Attribute name",
+			"TTL",
+			Tango::OPERATOR);
+	command_list.push_back(pGetAttributeTTLCmd);
 
 	/*----- PROTECTED REGION ID(HdbConfigurationManagerClass::command_factory_after) ENABLED START -----*/
 	

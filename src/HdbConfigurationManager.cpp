@@ -73,6 +73,8 @@ static const char *RcsId = "$Id: HdbConfigurationManager.cpp,v 1.3 2014-03-07 14
 //  AttributePause        |  attribute_pause
 //  SetAttributeStrategy  |  set_attribute_strategy
 //  GetAttributeStrategy  |  get_attribute_strategy
+//  SetAttributeTTL       |  set_attribute_ttl
+//  GetAttributeTTL       |  get_attribute_ttl
 //================================================================
 
 //================================================================
@@ -2059,9 +2061,12 @@ void HdbConfigurationManager::attribute_add()
 	{
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
-		add_argin.length(2);
+		add_argin.length(3);
 		add_argin[0] = CORBA::string_dup(signame.c_str());
 		add_argin[1] = CORBA::string_dup(*attr_SetStrategy_read);
+		stringstream tmpttl;
+		tmpttl << *attr_SetTTL_read;
+		add_argin[2] = CORBA::string_dup(tmpttl.str().c_str());
 		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
 	}
@@ -2854,6 +2859,124 @@ Tango::DevString HdbConfigurationManager::get_attribute_strategy(Tango::DevStrin
 
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::get_attribute_strategy
+	return argout;
+}
+//--------------------------------------------------------
+/**
+ *	Command SetAttributeTTL related method
+ *	Description: Update ttl for an already archived attribute.
+ *
+ *	@param argin Attribute name, ttl
+ */
+//--------------------------------------------------------
+void HdbConfigurationManager::set_attribute_ttl(const Tango::DevVarStringArray *argin)
+{
+	DEBUG_STREAM << "HdbConfigurationManager::SetAttributeTTL()  - " << device_name << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::set_attribute_ttl) ENABLED START -----*/
+	
+	//	Add your own code
+	string	signame;
+	string s_ttl(DEFAULT_TTL);
+	if(argin->length() > 0)
+	{
+		signame = string((*argin)[0]);
+	}
+	if(argin->length() > 1)
+	{
+		s_ttl = string((*argin)[1]);
+	}
+
+	fix_tango_host(signame);
+	string archname = find_archiver(signame);
+	DEBUG_STREAM << __func__<<": found archname=" << archname << " for signame=" << signame << " TTL=" << s_ttl << endl;
+
+	archiver_map_t::iterator itmap = archiverMap.find(archname);
+	if(itmap == archiverMap.end())
+	{
+		stringstream tmp;
+		tmp << "Attribute '" << signame << "' not found";
+		Tango::Except::throw_exception( \
+					(const char*)"Attribute not found", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	if(itmap->second.dp)
+	{
+		Tango::DevVarStringArray add_argin;
+		Tango::DeviceData Din;
+		add_argin.length(2);
+		add_argin[0] = CORBA::string_dup(signame.c_str());
+		add_argin[1] = CORBA::string_dup(s_ttl.c_str());
+		Din << add_argin;
+		itmap->second.dp->command_inout("SetAttributeTTL",Din);
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Archiver " << itmap->first << " Not Responding";
+		Tango::Except::throw_exception( \
+					(const char*)"Error", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::set_attribute_ttl
+}
+//--------------------------------------------------------
+/**
+ *	Command GetAttributeTTL related method
+ *	Description: 
+ *
+ *	@param argin Attribute name
+ *	@returns TTL
+ */
+//--------------------------------------------------------
+Tango::DevULong HdbConfigurationManager::get_attribute_ttl(Tango::DevString argin)
+{
+	Tango::DevULong argout;
+	DEBUG_STREAM << "HdbConfigurationManager::GetAttributeTTL()  - " << device_name << endl;
+	/*----- PROTECTED REGION ID(HdbConfigurationManager::get_attribute_ttl) ENABLED START -----*/
+	
+	//	Add your own code
+	bool found=false;
+	string signame(argin);
+	fix_tango_host(signame);
+	string archname = find_archiver(signame);
+	DEBUG_STREAM << __func__<<": found archname=" << archname << " for signame=" << signame << endl;
+
+	archiver_map_t::iterator itmap = archiverMap.find(archname);
+	if(itmap == archiverMap.end())
+	{
+		stringstream tmp;
+		tmp << "Attribute '" << signame << "' not found";
+		Tango::Except::throw_exception( \
+					(const char*)"Attribute not found", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	if(itmap->second.dp)
+	{
+		Tango::DevULong ttl;
+		Tango::DeviceData Din, Dout;
+		Din << signame;
+		Dout = itmap->second.dp->command_inout("GetAttributeTTL",Din);
+		Dout >> ttl;
+		argout = ttl;
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << "Cannot read ttl for attribute '" << signame << "'";
+		Tango::Except::throw_exception( \
+					(const char*)"Cannot read ttl", \
+					tmp.str(), \
+					(const char*)__func__, Tango::ERR);
+	}
+
+	
+	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::get_attribute_ttl
 	return argout;
 }
 //--------------------------------------------------------

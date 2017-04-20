@@ -41,6 +41,7 @@
 #include <tango.h>
 #include "LibHdb++.h"
 
+#define DEFAULT_TTL		"0"
 
 /*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager.h
 
@@ -638,6 +639,23 @@ public:
 	 */
 	virtual Tango::DevString get_attribute_strategy(Tango::DevString argin);
 	virtual bool is_GetAttributeStrategy_allowed(const CORBA::Any &any);
+	/**
+	 *	Command SetAttributeTTL related method
+	 *	Description: Update ttl for an already archived attribute.
+	 *
+	 *	@param argin Attribute name, ttl
+	 */
+	virtual void set_attribute_ttl(const Tango::DevVarStringArray *argin);
+	virtual bool is_SetAttributeTTL_allowed(const CORBA::Any &any);
+	/**
+	 *	Command GetAttributeTTL related method
+	 *	Description: 
+	 *
+	 *	@param argin Attribute name
+	 *	@returns TTL
+	 */
+	virtual Tango::DevULong get_attribute_ttl(Tango::DevString argin);
+	virtual bool is_GetAttributeTTL_allowed(const CORBA::Any &any);
 
 
 	//--------------------------------------------------------

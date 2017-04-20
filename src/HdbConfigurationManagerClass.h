@@ -780,6 +780,52 @@ public:
 	{return (static_cast<HdbConfigurationManager *>(dev))->is_GetAttributeStrategy_allowed(any);}
 };
 
+//	Command SetAttributeTTL class definition
+class SetAttributeTTLClass : public Tango::Command
+{
+public:
+	SetAttributeTTLClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out,
+				   const char        *in_desc,
+				   const char        *out_desc,
+				   Tango::DispLevel  level)
+	:Command(name,in,out,in_desc,out_desc, level)	{};
+
+	SetAttributeTTLClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out)
+	:Command(name,in,out)	{};
+	~SetAttributeTTLClass() {};
+	
+	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
+	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
+	{return (static_cast<HdbConfigurationManager *>(dev))->is_SetAttributeTTL_allowed(any);}
+};
+
+//	Command GetAttributeTTL class definition
+class GetAttributeTTLClass : public Tango::Command
+{
+public:
+	GetAttributeTTLClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out,
+				   const char        *in_desc,
+				   const char        *out_desc,
+				   Tango::DispLevel  level)
+	:Command(name,in,out,in_desc,out_desc, level)	{};
+
+	GetAttributeTTLClass(const char   *name,
+	               Tango::CmdArgType in,
+				   Tango::CmdArgType out)
+	:Command(name,in,out)	{};
+	~GetAttributeTTLClass() {};
+	
+	virtual CORBA::Any *execute (Tango::DeviceImpl *dev, const CORBA::Any &any);
+	virtual bool is_allowed (Tango::DeviceImpl *dev, const CORBA::Any &any)
+	{return (static_cast<HdbConfigurationManager *>(dev))->is_GetAttributeTTL_allowed(any);}
+};
+
 
 /**
  *	The HdbConfigurationManagerClass singleton definition

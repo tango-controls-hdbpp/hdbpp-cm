@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
-  <classes name="HdbConfigurationManager" pogoRevision="9.1">
-    <description description="" title="Hdb++ configuration manager" sourcePath="/home/graziano/workspace/fermi/servers/hdb++/hdb++cm/trunk/src" language="Cpp" filestogenerate="XMI   file,Code files,Protected Regions" license="GPL" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false">
+  <classes name="HdbConfigurationManager" pogoRevision="9.4">
+    <description description="" title="Hdb++ configuration manager" sourcePath="/home/graziano/ws/hdb++/hdbpp-cm/src" language="Cpp" filestogenerate="XMI   file,Code files,Protected Regions" license="GPL" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
       <identification contact="at elettra.eu - graziano.scalamera" author="graziano.scalamera" emailDomain="elettra.eu" classFamily="Miscellaneous" siteSpecific="" platform="Unix Like" bus="Not Applicable" manufacturer="none" reference=""/>
     </description>
@@ -167,6 +167,24 @@
       </argin>
       <argout description="Strategy">
         <type xsi:type="pogoDsl:StringType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="SetAttributeTTL" description="Update ttl for an already archived attribute." execMethod="set_attribute_ttl" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
+      <argin description="Attribute name, ttl">
+        <type xsi:type="pogoDsl:StringArrayType"/>
+      </argin>
+      <argout description="">
+        <type xsi:type="pogoDsl:VoidType"/>
+      </argout>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </commands>
+    <commands name="GetAttributeTTL" description="" execMethod="get_attribute_ttl" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
+      <argin description="Attribute name">
+        <type xsi:type="pogoDsl:StringType"/>
+      </argin>
+      <argout description="TTL">
+        <type xsi:type="pogoDsl:UIntType"/>
       </argout>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
@@ -408,6 +426,6 @@
     <states name="ALARM" description="At least one archiver is in ALARM">
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </states>
-    <preferences docHome="./doc_html" makefileHome="/usr/local/tango-8.1.2.c/share/pogo/preferences"/>
+    <preferences docHome="./doc_html" makefileHome="/usr/local/tango-9.2.5a/share/pogo/preferences"/>
   </classes>
 </pogoDsl:PogoSystem>
