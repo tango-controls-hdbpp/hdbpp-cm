@@ -2045,16 +2045,14 @@ void HdbConfigurationManager::attribute_add()
 	}
 	delete dp;
 	//------3: Configure DB------------------------------------------------
-	int res = mdb->configure_Attr(signame, data_type, data_format, write_type, *attr_SetTTL_read);
-	if(res < 0)
+	try
 	{
-		Tango::Except::throw_exception( \
-					(const char*)"Error", \
-					(const char*)"Configuration query error", \
-					(const char*)__func__, Tango::ERR);
-/*		Tango::DeviceData Din;
-		Din << signame;
-		itmapnew->second.dp->command_inout("AttributeRemove",Din);*/
+		mdb->configure_Attr(signame, data_type, data_format, write_type, *attr_SetTTL_read);
+	}
+	catch(Tango::DevFailed &e)
+	{
+		INFO_STREAM << __func__<<": Error configuring attribute: " << signame << endl;
+		Tango::Except::re_throw_exception(e, "Error", "Configuration query error", __func__, Tango::ERR);
 	}
 	//------4: Assign to existing EventSubscriber--------------------------
 	if(itmapnew->second.dp)
