@@ -2051,8 +2051,10 @@ void HdbConfigurationManager::attribute_add()
 	}
 	catch(Tango::DevFailed &e)
 	{
-		INFO_STREAM << __func__<<": Error configuring attribute: " << signame << endl;
-		Tango::Except::re_throw_exception(e, "Error", "Configuration query error", __func__, Tango::ERR);
+		ERROR_STREAM << __func__<<": Error configuring attribute: " << signame << endl;
+		stringstream error_desc;
+		error_desc << "Failed to configure the attribute: " << signame << " in the database" << endl;
+		Tango::Except::re_throw_exception(e, "Attribute Configuration Query Error", error_desc.str(), __func__, Tango::ERR);
 	}
 	//------4: Assign to existing EventSubscriber--------------------------
 	if(itmapnew->second.dp)
