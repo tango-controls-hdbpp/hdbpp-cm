@@ -1555,7 +1555,7 @@ void HdbConfigurationManagerClass::command_factory()
 	AttributeAssignClass	*pAttributeAssignCmd =
 		new AttributeAssignClass("AttributeAssign",
 			Tango::DEVVAR_STRINGARRAY, Tango::DEV_VOID,
-			"[0]: Attribute name\n[1]: Archiver name\n[2]: Attribute Strategy",
+			"[0]: Attribute name\n[1]: Archiver name\n[2]: Attribute Strategy\n[3]: Attribute ttl",
 			"",
 			Tango::OPERATOR);
 	command_list.push_back(pAttributeAssignCmd);
