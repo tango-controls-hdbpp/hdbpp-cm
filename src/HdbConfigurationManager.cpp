@@ -2337,7 +2337,7 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 					(const char*)__func__, Tango::ERR);
 	}
 
-    bool removed = false;
+	bool removed = false;
     
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
 	{
@@ -2375,15 +2375,15 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 				}
 
 				Tango::DeviceData Din2;
-                Din2 << signame;
+				Din2 << signame;
 				itmap->second.dp->command_inout("AttributeRemove",Din2);
 				removed = true;
 				break;
 			}
         }
         
-        if(removed)
-            break;
+	if(removed)
+		break;
     }
     
 	if(!removed)
@@ -2397,33 +2397,33 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 	}
 	if(itmapnew->second.dp)
 	{
-        // see if we have a strategy parameter
+		// see if we have a strategy parameter
 		if(argin->length() > 2)
 		{
-            string context((*argin)[2]);
+			string context((*argin)[2]);
 
-            if(context.length() > 0)
-                strategy = context;
-        }
+			if(context.length() > 0)
+				strategy = context;
+		}
 
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
 
-        // at length 4, we can assume a ttl, so we add an extra argument
-        if (argin->length() == 4)
-		    add_argin.length(3);
-        else
-            add_argin.length(2);
+		// at length 4, we can assume a ttl, so we add an extra argument
+		if (argin->length() == 4)
+			add_argin.length(3);
+		else
+			add_argin.length(2);
 
-        add_argin[0] = CORBA::string_dup(signame.c_str());
+		add_argin[0] = CORBA::string_dup(signame.c_str());
 		add_argin[1] = CORBA::string_dup(strategy.c_str());
         
-        if (argin->length() == 4)
-        {
-            string ttl((*argin)[3]);
-            add_argin[2] = CORBA::string_dup(ttl.c_str());
-        }
-            
+		if (argin->length() == 4)
+		{
+			string ttl((*argin)[3]);
+			add_argin[2] = CORBA::string_dup(ttl.c_str());
+		}
+
 		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
 	}
@@ -2457,7 +2457,7 @@ Tango::DevString HdbConfigurationManager::attribute_status(Tango::DevString argi
 	//	Add your own code
 	bool found=false;
 	string signame(argin);
-    fix_tango_host(signame);
+	fix_tango_host(signame);
     
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
 	{
@@ -2495,10 +2495,11 @@ Tango::DevString HdbConfigurationManager::attribute_status(Tango::DevString argi
 				found = true;
 				break;
 			}
-        }
+		}
         
-        if(found)
-            break;
+		if(found)
+			break;
+
 	}
 	if(!found)
 	{
