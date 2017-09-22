@@ -569,6 +569,7 @@ public:
 	 *	@param argin [0]: Attribute name
 	 *               [1]: Archiver name
 	 *               [2]: Attribute Strategy
+	 *               [3]: Attribute ttl
 	 */
 	virtual void attribute_assign(const Tango::DevVarStringArray *argin);
 	virtual bool is_AttributeAssign_allowed(const CORBA::Any &any);

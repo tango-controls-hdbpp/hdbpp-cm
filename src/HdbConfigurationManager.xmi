@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
   <classes name="HdbConfigurationManager" pogoRevision="9.4">
-    <description description="" title="Hdb++ configuration manager" sourcePath="/home/graziano/ws/hdb++/hdbpp-cm/src" language="Cpp" filestogenerate="XMI   file,Code files,Protected Regions" license="GPL" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false">
+    <description description="" title="Hdb++ configuration manager" sourcePath="/mntdirect/_users/sjames/workspace/hdb++/hdbpp-cm/src" language="Cpp" filestogenerate="XMI   file,Code files,Protected Regions" license="GPL" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
       <identification contact="at elettra.eu - graziano.scalamera" author="graziano.scalamera" emailDomain="elettra.eu" classFamily="Miscellaneous" siteSpecific="" platform="Unix Like" bus="Not Applicable" manufacturer="none" reference=""/>
     </description>
@@ -90,7 +90,7 @@
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </commands>
     <commands name="AttributeAssign" description="Assigne attribute to archiver.&#xA;If Strategy is not specified use DefaultStrategy of the target archiver." execMethod="attribute_assign" displayLevel="OPERATOR" polledPeriod="0" isDynamic="false">
-      <argin description="[0]: Attribute name&#xA;[1]: Archiver name&#xA;[2]: Attribute Strategy">
+      <argin description="[0]: Attribute name&#xA;[1]: Archiver name&#xA;[2]: Attribute Strategy&#xA;[3]: Attribute ttl">
         <type xsi:type="pogoDsl:StringArrayType"/>
       </argin>
       <argout description="">
@@ -426,6 +426,6 @@
     <states name="ALARM" description="At least one archiver is in ALARM">
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </states>
-    <preferences docHome="./doc_html" makefileHome="/usr/local/tango-9.2.5a/share/pogo/preferences"/>
+    <preferences docHome="./doc_html" makefileHome="/segfs/tango/cppserver/env"/>
   </classes>
 </pogoDsl:PogoSystem>
