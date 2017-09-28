@@ -2545,7 +2545,6 @@ Tango::DevVarStringArray *HdbConfigurationManager::attribute_search(Tango::DevSt
 	//	Add your own code
 	attribute_search_list_str.clear();
 	vector<string> complete_list;
-	vector<string>::iterator retlist = complete_list.begin();
 	DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - 0 complete list -> size=" << complete_list.size() << endl;
 	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
@@ -2571,9 +2570,6 @@ Tango::DevVarStringArray *HdbConfigurationManager::attribute_search(Tango::DevSt
 		}
 		DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - partial list -> size=" << itmap->second.attr_list.size() << endl;
 		complete_list.insert(complete_list.end(),itmap->second.attr_list.begin(), itmap->second.attr_list.end());
-		/*vector<string>::iterator tmplist;
-		tmplist = copy(it->second.attr_list.begin(), it->second.attr_list.end(), complete_list.begin());
-		retlist = tmplist;*/
 		DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - building complete list -> size=" << complete_list.size() << endl;
 	}
 
@@ -2826,7 +2822,6 @@ Tango::DevString HdbConfigurationManager::get_attribute_strategy(Tango::DevStrin
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::get_attribute_strategy) ENABLED START -----*/
 	
 	//	Add your own code
-	bool found=false;
 	string signame(argin);
 	fix_tango_host(signame);
 	string archname = find_archiver(signame);

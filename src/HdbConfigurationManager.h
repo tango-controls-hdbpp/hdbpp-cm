@@ -39,7 +39,7 @@
 #define HdbConfigurationManager_H
 
 #include <tango.h>
-#include "LibHdb++.h"
+#include <libhdb++/LibHdb++.h>
 
 #define DEFAULT_TTL		"0"
 

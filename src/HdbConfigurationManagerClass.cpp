@@ -676,7 +676,6 @@ void HdbConfigurationManagerClass::write_class_property()
 	Tango::DbData	data;
 	string	classname = get_name();
 	string	header;
-	string::size_type	start, end;
 
 	//	Put title
 	Tango::DbDatum	title("ProjectTitle");
