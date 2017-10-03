@@ -9,7 +9,7 @@ Build-Depends: libhdb++6-dev,
                make
 Standards-Version: 3.9.3
 Section: misc
-Homepage: https://github.com/tango-controls/hdbpp-cm
+Homepage: https://github.com/tango-controls-hdbpp/hdbpp-cm
 
 Package: hdb++cm
 Priority: optional
