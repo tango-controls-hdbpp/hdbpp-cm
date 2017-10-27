@@ -26,9 +26,13 @@ Ensure the development version of the dependencies are installed. These are as f
 * omniORB release 4 - libomniorb4 and libomnithread.
 * libzmq - libzmq3-dev or libzmq5-dev.
 
+#### **Tango 8**
+
+It is also possible to compile and link against tango 8. This is discouraged since this device server has not been test built and run against tango 8 recently. Offically we support tango 9 onwards.
+
 ### Build Flags
 
-There are a set of library and include variables that can be set to inform the build of various dependencies. The flags are only required if you have installed a dependency in a non-standard location. 
+There are a set of library and include variables that can be set to inform the build of various dependencies. The flags are optional and only required if you have installed a dependency in a non-standard location. 
 
 | Flag | Notes |
 |------|-------|
@@ -39,6 +43,7 @@ There are a set of library and include variables that can be set to inform the b
 | ZMQ_INC | ZMQ include files directory |
 | LIBHDBPP_INC | Libhdb++ include files directory |
 | LIBHDBPP_LIB | Libhdb++ lib files directory |
+| ADDITIONAL_LIBS | Add additional paths and libraries to the build, eg "-L/lib -lCOS4" |
 
 ### Build
 
