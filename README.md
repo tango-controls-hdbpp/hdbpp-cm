@@ -77,7 +77,7 @@ If wishing to build the project, ensure the following dependencies are met:
 |------|-----|-----|-----|
 | ENABLE_CLANG | ON/OFF | OFF | Clang code static analysis and cppcore guideline enforcement |
 | FETCH_LIBHDBPP | ON/OFF | OFF | Download and build against libhdbpp locally |
-| FETCH_LIBHDBPP_TAG | git tag/branch | master | When FETCH_LIBHDBPP is enabled, this flag defines the tag/branch to download |
+| FETCH_LIBHDBPP_TAG | tag/branch | master | When FETCH_LIBHDBPP is enabled, this flag defines the tag/branch to download |
 
 ### Standard CMake Flags
 
