@@ -53,16 +53,16 @@ if(FETCH_LIBHDBPP)
     set(FETCH_PROJECT_NAME "libhdb++")
     set(FETCH_REPOSITORY_ADDRESS "https://github.com/tango-controls-hdbpp/libhdbpp.git")
     set(FETCH_REPOSITORY_TAG ${FETCH_LIBHDBPP_TAG})
- 
-    configure_file(cmake/FetchExternal.cmake.in libhdb++-download/CMakeLists.txt)
+    
+    configure_file(cmake/FetchExternal.cmake.in ${FETCH_PROJECT_NAME}-download/CMakeLists.txt)
 
     execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libhdb++-download" )
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${FETCH_PROJECT_NAME}-download" )
 
     execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libhdb++-download" )
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${FETCH_PROJECT_NAME}-download" )
 
-    add_subdirectory("${CMAKE_BINARY_DIR}/libhdb++-src" EXCLUDE_FROM_ALL)
+    add_subdirectory("${CMAKE_BINARY_DIR}/${FETCH_PROJECT_NAME}-src" EXCLUDE_FROM_ALL)
 
     # For ease of use, we set the libhdb++ output to our projects build directory,
     # making linking and running easy
