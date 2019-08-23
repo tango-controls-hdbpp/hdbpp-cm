@@ -39,7 +39,7 @@
 #define HdbConfigurationManager_H
 
 #include <tango.h>
-#include <libhdb++/LibHdb++.h>
+#include <hdb++/HdbClient.h>
 
 #define DEFAULT_TTL		"0"
 
@@ -102,7 +102,7 @@ protected:
 
 	Tango::DevLong	original_SetPollingPeriod;
 
-	HdbClient *mdb;
+	hdbpp::HdbClient *mdb;
 	static map<string, string> domain_map;
 	timespec last_stat;
 public:

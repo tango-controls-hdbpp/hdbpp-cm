@@ -346,7 +346,7 @@ void HdbConfigurationManager::init_device()
 	mdb = NULL;
 	try
 	{
-		mdb = new HdbClient(libConfiguration);
+		mdb = new hdbpp::HdbClient(libConfiguration);
 	}
 	catch (Tango::DevFailed &err)
 	{
