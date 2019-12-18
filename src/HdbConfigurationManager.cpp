@@ -228,6 +228,10 @@ void HdbConfigurationManager::delete_device()
 	
 	if(mdb)
 		delete mdb;
+	
+	Tango::string_free(*attr_SetAttributeName_read);
+	Tango::string_free(*attr_SetArchiver_read);
+	Tango::string_free(*attr_SetStrategy_read);
 
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::delete_device
 	delete[] attr_AttributeOKNumber_read;
@@ -317,14 +321,14 @@ void HdbConfigurationManager::init_device()
 	
 	//	Initialize device
 	*attr_SetCodePushedEvent_read = false;
-	*attr_SetAttributeName_read = CORBA::string_dup("");
-	*attr_SetArchiver_read = CORBA::string_dup("");
+	*attr_SetAttributeName_read = Tango::string_dup("");
+	*attr_SetArchiver_read = Tango::string_dup("");
 	*attr_SetPeriodEvent_read = -1;
 	*attr_SetRelativeEvent_read = -1;
 	*attr_SetAbsoluteEvent_read = -1;
 	*attr_SetPollingPeriod_read = -1;
 	*attr_SetTTL_read = 0;
-	*attr_SetStrategy_read = CORBA::string_dup("");
+	*attr_SetStrategy_read = Tango::string_dup("");
 	archiver_t tmp;
 	for(vector<string>::iterator it = archiverList.begin(); it!= archiverList.end(); it++)
 	{
@@ -880,7 +884,8 @@ void HdbConfigurationManager::write_SetAttributeName(Tango::WAttribute &attr)
 					(const char *)__func__);
 	}
 	delete dp;
-	*attr_SetAttributeName_read = CORBA::string_dup(signame.c_str());
+	Tango::string_free(*attr_SetAttributeName_read);
+	*attr_SetAttributeName_read = Tango::string_dup(signame.c_str());
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetAttributeName
 }
 //--------------------------------------------------------
@@ -1149,7 +1154,8 @@ void HdbConfigurationManager::write_SetArchiver(Tango::WAttribute &attr)
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetArchiver) ENABLED START -----*/
 	string signame(w_val);
 	fix_tango_host(signame);
-	*attr_SetArchiver_read = CORBA::string_dup(signame.c_str());
+	Tango::string_free(*attr_SetArchiver_read);
+	*attr_SetArchiver_read = Tango::string_dup(signame.c_str());
 	
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetArchiver
 }
@@ -1605,7 +1611,8 @@ void HdbConfigurationManager::write_SetStrategy(Tango::WAttribute &attr)
 	Tango::DevString	w_val;
 	attr.get_write_value(w_val);
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::write_SetStrategy) ENABLED START -----*/
-	*attr_SetStrategy_read = CORBA::string_dup(w_val);
+	Tango::string_free(*attr_SetStrategy_read);
+	*attr_SetStrategy_read = Tango::string_dup(w_val);
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::write_SetStrategy
 }
 //--------------------------------------------------------
@@ -1981,12 +1988,12 @@ void HdbConfigurationManager::attribute_add()
 	//------2: set attribute with event parameters-------------------------
 
 	vector<string> attrnames;
+	Tango::AttributeInfoListEx *attr_info_list_ex = nullptr;
 	try
 	{
 		attrnames.push_back(attname);
 
 		//read actual attribute config
-		Tango::AttributeInfoListEx *attr_info_list_ex;
 		DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - before read attribute config attr="<<attname;
 		attr_info_list_ex = dp->get_attribute_config_ex(attrnames);
 		DEBUG_STREAM << "HdbConfigurationManager::AttributeAdd()  - read attribute config size=" << attr_info_list_ex->size() << endl;
@@ -2021,8 +2028,7 @@ void HdbConfigurationManager::attribute_add()
 		}
 		if(changed)
 			dp->set_attribute_config(*attr_info_list_ex);
-
-
+		
 		DEBUG_STREAM<<"after  set_attribute_config";
 		//write polling only if changed
 		if(*attr_SetPollingPeriod_read != 0 && original_SetPollingPeriod != *attr_SetPollingPeriod_read)
@@ -2041,6 +2047,7 @@ void HdbConfigurationManager::attribute_add()
 	{
 	}
 	delete dp;
+	delete attr_info_list_ex;
 	//------3: Configure DB------------------------------------------------
 	try
 	{
@@ -2059,11 +2066,11 @@ void HdbConfigurationManager::attribute_add()
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
 		add_argin.length(3);
-		add_argin[0] = CORBA::string_dup(signame.c_str());
-		add_argin[1] = CORBA::string_dup(*attr_SetStrategy_read);
+		add_argin[0] = Tango::string_dup(signame.c_str());
+		add_argin[1] = Tango::string_dup(*attr_SetStrategy_read);
 		stringstream tmpttl;
 		tmpttl << *attr_SetTTL_read;
-		add_argin[2] = CORBA::string_dup(tmpttl.str().c_str());
+		add_argin[2] = Tango::string_dup(tmpttl.str().c_str());
 		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
 	}
@@ -2415,13 +2422,13 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 		else
 			add_argin.length(2);
 
-		add_argin[0] = CORBA::string_dup(signame.c_str());
-		add_argin[1] = CORBA::string_dup(strategy.c_str());
+		add_argin[0] = Tango::string_dup(signame.c_str());
+		add_argin[1] = Tango::string_dup(strategy.c_str());
         
 		if (argin->length() == 4)
 		{
 			string ttl((*argin)[3]);
-			add_argin[2] = CORBA::string_dup(ttl.c_str());
+			add_argin[2] = Tango::string_dup(ttl.c_str());
 		}
 
 		Din << add_argin;
@@ -2491,7 +2498,7 @@ Tango::DevString HdbConfigurationManager::attribute_status(Tango::DevString argi
 				Dout = itmap->second.dp->command_inout("AttributeStatus",Din);
 				Dout >> status;
 				status += string("\nArchiver: ") + itmap->first;
-				argout = CORBA::string_dup(status.c_str());
+				argout = Tango::string_dup(status.c_str());
 				found = true;
 				break;
 			}
@@ -2541,7 +2548,7 @@ Tango::DevString HdbConfigurationManager::attribute_get_archiver(Tango::DevStrin
 					(const char*)__func__, Tango::ERR);
 	}*/
 	
-	argout = CORBA::string_dup(archiver.c_str());
+	argout = Tango::string_dup(archiver.c_str());
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::attribute_get_archiver
 	return argout;
 }
@@ -2617,7 +2624,7 @@ Tango::DevVarStringArray *HdbConfigurationManager::attribute_search(Tango::DevSt
 	for (vector<string>::iterator it= attribute_search_list_str.begin(); it != attribute_search_list_str.end(); it++)
 	{
 		DEBUG_STREAM << "HdbConfigurationManager::AttributeSearch()  - result list -> copying=" << *it << endl;
-		(*argout)[i] = CORBA::string_dup(it->c_str());
+		(*argout)[i] = Tango::string_dup(it->c_str());
 		i++;
 	}
 	
@@ -2807,8 +2814,8 @@ void HdbConfigurationManager::set_attribute_strategy(const Tango::DevVarStringAr
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
 		add_argin.length(2);
-		add_argin[0] = CORBA::string_dup(signame.c_str());
-		add_argin[1] = CORBA::string_dup(v_contexts.c_str());
+		add_argin[0] = Tango::string_dup(signame.c_str());
+		add_argin[1] = Tango::string_dup(v_contexts.c_str());
 		Din << add_argin;
 		itmap->second.dp->command_inout("SetAttributeStrategy",Din);
 	}
@@ -2863,11 +2870,11 @@ Tango::DevString HdbConfigurationManager::get_attribute_strategy(Tango::DevStrin
 		Din << signame;
 		Dout = itmap->second.dp->command_inout("GetAttributeStrategy",Din);
 		Dout >> strategy;
-		argout = CORBA::string_dup(strategy.c_str());
+		argout = Tango::string_dup(strategy.c_str());
 	}
 	else
 	{
-		argout = CORBA::string_dup("");
+		argout = Tango::string_dup("");
 	}
 
 	
@@ -2919,8 +2926,8 @@ void HdbConfigurationManager::set_attribute_ttl(const Tango::DevVarStringArray *
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
 		add_argin.length(2);
-		add_argin[0] = CORBA::string_dup(signame.c_str());
-		add_argin[1] = CORBA::string_dup(s_ttl.c_str());
+		add_argin[0] = Tango::string_dup(signame.c_str());
+		add_argin[1] = Tango::string_dup(s_ttl.c_str());
 		Din << add_argin;
 		itmap->second.dp->command_inout("SetAttributeTTL",Din);
 	}
