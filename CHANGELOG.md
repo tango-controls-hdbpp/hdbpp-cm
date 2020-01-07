@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+* Fix potential crash in HdbConfigurationManager::add_domain [#6](https://github.com/tango-controls-hdbpp/hdbpp-cm/issues/6)
+
 ## [1.0.0] - 2017-09-28
 
 ### Added
