@@ -3084,20 +3084,16 @@ void HdbConfigurationManager::add_domain(string &str)
 		hints.ai_family = AF_UNSPEC; /*either IPV4 or IPV6*/
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_flags = AI_CANONNAME;
-		struct addrinfo *result, *rp;
+		struct addrinfo *result;
 		int ret = getaddrinfo(th.c_str(), NULL, &hints, &result);
 		if (ret != 0)
 		{
 			cout << __func__<< ": getaddrinfo error='" << gai_strerror(ret)<<"' while looking for " << th<<endl;
 			return;
 		}
-
-		for (rp = result; rp != NULL; rp = rp->ai_next)
-		{
-			with_domain = string(rp->ai_canonname) + str.substr(end2);
-			//cout << __func__ <<": found domain -> " << with_domain<<endl;
-			domain_map.insert(make_pair(th, with_domain));
-		}
+		with_domain = string(result->ai_canonname) + str.substr(end2);
+		//cout << __func__ <<": found domain -> " << with_domain<<endl;
+		domain_map.insert(make_pair(th, with_domain));
 		freeaddrinfo(result); // all done with this structure
 		str = with_domain;
 		return;
@@ -3166,7 +3162,7 @@ void HdbConfigurationManager::add_domain(string &str)
 			hints.ai_family = AF_UNSPEC; /*either IPV4 or IPV6*/
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_flags = AI_CANONNAME;
-			struct addrinfo *result, *rp;
+			struct addrinfo *result;
 			int ret = getaddrinfo(th.c_str(), NULL, &hints, &result);
 			if (ret != 0)
 			{
@@ -3176,12 +3172,8 @@ void HdbConfigurationManager::add_domain(string &str)
 					strresult += ",";
 				continue;
 			}
-
-			for (rp = result; rp != NULL; rp = rp->ai_next)
-			{
-				with_domain = string(rp->ai_canonname) + it->substr(end2);
-				domain_map.insert(make_pair(th, string(rp->ai_canonname)));
-			}
+			with_domain = string(result->ai_canonname) + it->substr(end2);
+			domain_map.insert(make_pair(th, string(rp->ai_canonname)));
 			freeaddrinfo(result); // all done with this structure
 			strresult += with_domain;
 			if(it != facilities.end()-1)
