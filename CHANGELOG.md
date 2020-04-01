@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Observe new namespace in libhdbpp
 * Changed libhdbpp includes to new path (hdb++) and new split header files
 * Project now links directly to given libhdbpp soname major version
-
+* Made compatible with new libhdbpp (namespace, function and path changes)
+* 
 ## [1.0.0] - 2017-09-28
 
 ### Added
