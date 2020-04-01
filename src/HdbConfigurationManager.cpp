@@ -346,7 +346,7 @@ void HdbConfigurationManager::init_device()
 	mdb = NULL;
 	try
 	{
-		mdb = new hdbpp::HdbClient(libConfiguration);
+		mdb = new hdbpp::HdbClient(Tango::Util::instance()->get_ds_inst_name(), libConfiguration);
 	}
 	catch (Tango::DevFailed &err)
 	{
@@ -2044,7 +2044,7 @@ void HdbConfigurationManager::attribute_add()
 	//------3: Configure DB------------------------------------------------
 	try
 	{
-		mdb->configure_Attr(signame, data_type, data_format, write_type, *attr_SetTTL_read);
+		mdb->add_attribute(signame, data_type, data_format, write_type, *attr_SetTTL_read);
 	}
 	catch(Tango::DevFailed &e)
 	{
