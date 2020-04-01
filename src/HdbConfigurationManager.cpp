@@ -2044,7 +2044,10 @@ void HdbConfigurationManager::attribute_add()
 	//------3: Configure DB------------------------------------------------
 	try
 	{
-		mdb->add_attribute(signame, data_type, data_format, write_type, *attr_SetTTL_read);
+		mdb->add_attribute(signame, data_type, data_format, write_type);
+
+		if(mdb->supported(hdbpp::HdbppFeatures::TTL) && *attr_SetTTL_read > 0)
+			mdb->update_ttl(signame, *attr_SetTTL_read);
 	}
 	catch(Tango::DevFailed &e)
 	{
