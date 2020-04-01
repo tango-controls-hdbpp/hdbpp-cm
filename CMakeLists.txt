@@ -71,9 +71,9 @@ if(FETCH_LIBHDBPP)
         PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-    elseif(NOT LIBHDBPP_PROJECT_BUILD AND NOT FETCH_LIBHDBPP)
-        find_library(LIBHDBPP_LIB_SEARCH libhdb++.so.2 PATHS LIBRARY_PATHS)
-        message(STATUS "Found: ${LIBHDBPP_LIB_SEARCH}")
+elseif(NOT LIBHDBPP_PROJECT_BUILD AND NOT FETCH_LIBHDBPP)
+    find_library(LIBHDBPP_LIB_SEARCH libhdb++.so.2 PATHS LIBRARY_PATHS)
+    message(STATUS "Found: ${LIBHDBPP_LIB_SEARCH}")
 endif()
 
 # split the generator expression out to here so we can make it more
