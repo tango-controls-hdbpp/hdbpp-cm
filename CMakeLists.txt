@@ -71,6 +71,8 @@ if(FETCH_LIBHDBPP)
         PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
+    set(BACKEND_LIBRARY_TARGET "libhdbpp_shared_library")
+
 elseif(NOT LIBHDBPP_PROJECT_BUILD AND NOT FETCH_LIBHDBPP)
     find_library(LIBHDBPP_LIB_SEARCH libhdb++.so.2 PATHS LIBRARY_PATHS)
     message(STATUS "Found: ${LIBHDBPP_LIB_SEARCH}")
@@ -84,7 +86,7 @@ string(CONCAT HDBPP_LIB
             "$<BOOL:${LIBHDBPP_PROJECT_BUILD}>,"
             "$<BOOL:${FETCH_LIBHDBPP}>"
         ">,"
-        "libhdbpp_shared_library,${LIBHDBPP_LIB_SEARCH}"
+        "${BACKEND_LIBRARY_TARGET},${LIBHDBPP_LIB_SEARCH}"
     ">")
 
 # First find tango if it has not already been found. Returns an interface library
