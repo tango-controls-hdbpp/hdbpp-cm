@@ -219,16 +219,8 @@ void HdbConfigurationManager::delete_device()
 	if(attr_ArchiverStatisticsResetTime_read != NULL)
 		delete [] attr_ArchiverStatisticsResetTime_read;
 
-	for(archiver_map_t::iterator it = archiverMap.begin(); it!= archiverMap.end(); it++)
-	{
-		if(it->second.dp != NULL)
-			delete it->second.dp;
-	}
 	archiverMap.clear();
 	
-	if(mdb)
-		delete mdb;
-
 	/*----- PROTECTED REGION END -----*/	//	HdbConfigurationManager::delete_device
 	delete[] attr_AttributeOKNumber_read;
 	delete[] attr_AttributeNokNumber_read;
@@ -326,37 +318,23 @@ void HdbConfigurationManager::init_device()
 	*attr_SetTTL_read = 0;
 	*attr_SetStrategy_read = CORBA::string_dup("");
 	archiver_t tmp;
-	for(vector<string>::iterator it = archiverList.begin(); it!= archiverList.end(); it++)
+	for(auto it = archiverList.begin(); it!= archiverList.end(); it++)
 	{
 		try
 		{
-			tmp.dp = new Tango::DeviceProxy(*it);
+			tmp.dp = std::unique_ptr<Tango::DeviceProxy>(new Tango::DeviceProxy(*it));
 		}
 		catch(Tango::DevFailed &e)
 		{
-			tmp.dp = NULL;
+			tmp.dp = std::unique_ptr<Tango::DeviceProxy>(nullptr);
 		}
 		string archname(*it);
 		fix_tango_host(archname);
 		DEBUG_STREAM << __func__<<": adding archiver:"<<archname;
 		archiver_list_fix.push_back(archname);
-		archiverMap.insert(make_pair(archname,tmp));
+		archiverMap.insert(make_pair(archname,std::move(tmp)));
 	}
 
-	mdb = NULL;
-	try
-	{
-		mdb = new hdbpp::HdbClient(Tango::Util::instance()->get_ds_inst_name(), libConfiguration);
-	}
-	catch (Tango::DevFailed &err)
-	{
-		stringstream tmp;
-		tmp << "Error initializing Hdb++ library: " << err.errors[0].desc;
-		ERROR_STREAM << __func__ << ": " << tmp.str() << endl;
-		set_state(Tango::FAULT);
-		set_status(tmp.str());
-	}
-	
 #ifdef _USE_FERMI_DB_RW
 	host_rw = "";
 	Tango::Database *db = new Tango::Database();
@@ -511,18 +489,18 @@ void HdbConfigurationManager::always_executed_hook()
 	}
 	clock_gettime(CLOCK_MONOTONIC,&last_stat);
 	bool archiver_fault = false;
-	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
+	for(auto itmap = archiverMap.begin(); itmap != archiverMap.end(); itmap++)
 	{
-		if(itmap->second.dp == NULL)
+		if(itmap->second.dp.get() == nullptr)
 		{
 			DEBUG_STREAM << __func__ << ": reconnecting to " << itmap->first;
 			try
 			{
-				itmap->second.dp = new Tango::DeviceProxy(itmap->first.c_str());
+				itmap->second.dp = std::unique_ptr<Tango::DeviceProxy>(new Tango::DeviceProxy(itmap->first.c_str()));
 			}
 			catch(Tango::DevFailed &e)
 			{
-				itmap->second.dp = NULL;
+				itmap->second.dp = std::unique_ptr<Tango::DeviceProxy>(nullptr);
 			}
 		}
 		else
@@ -1913,17 +1891,10 @@ void HdbConfigurationManager::attribute_add()
 	/*----- PROTECTED REGION ID(HdbConfigurationManager::attribute_add) ENABLED START -----*/
 	
 	//	Add your own code
-	if(mdb == NULL)
-	{
-		Tango::Except::throw_exception( \
-					(const char*)"NO Hdb++ Library", \
-					(const char*)"Failed initialization of Hdb++ Library", \
-					(const char*)__func__, Tango::ERR);
-	}
 	string signame(*attr_SetAttributeName_read);
 	string archname = find_archiver(signame);
 
-	archiver_map_t::iterator itmapnew = archiverMap.find(archname);
+	auto itmapnew = archiverMap.find(archname);
 	if(itmapnew != archiverMap.end())
 	{
 		stringstream tmp;
@@ -1947,8 +1918,8 @@ void HdbConfigurationManager::attribute_add()
 	}
 
 	//------1: check attribute with event parameters-----------------------
-	string::size_type idx = signame.find_last_of("/");
-	if (idx==string::npos)
+	string::size_type idx = signame.find_last_of('/');
+	if (idx == string::npos)
 		Tango::Except::throw_exception(
 					(const char *)"SyntaxError",
 					"Syntax error in signal name",
@@ -2042,8 +2013,10 @@ void HdbConfigurationManager::attribute_add()
 	}
 	delete dp;
 	//------3: Configure DB------------------------------------------------
+	/*
 	try
 	{
+		//TODO replace by calls to the deviceProxy
 		mdb->add_attribute(signame, data_type, data_format, write_type);
 
 		if(mdb->supported(hdbpp::HdbppFeatures::TTL) && *attr_SetTTL_read > 0)
@@ -2056,19 +2029,38 @@ void HdbConfigurationManager::attribute_add()
 		error_desc << "Failed to configure the attribute: " << signame << " in the database" << endl;
 		Tango::Except::re_throw_exception(e, "Attribute Configuration Query Error", error_desc.str(), __func__, Tango::ERR);
 	}
+	*/
 	//------4: Assign to existing EventSubscriber--------------------------
 	if(itmapnew->second.dp)
 	{
 		Tango::DevVarStringArray add_argin;
 		Tango::DeviceData Din;
-		add_argin.length(3);
+		add_argin.length(5);
 		add_argin[0] = CORBA::string_dup(signame.c_str());
 		add_argin[1] = CORBA::string_dup(*attr_SetStrategy_read);
-		stringstream tmpttl;
-		tmpttl << *attr_SetTTL_read;
-		add_argin[2] = CORBA::string_dup(tmpttl.str().c_str());
+		stringstream tmp;
+		tmp << data_type;
+		add_argin[2] = CORBA::string_dup(tmp.str().c_str());
+		tmp.str(std::string());
+		tmp << data_format;
+		add_argin[3] = CORBA::string_dup(tmp.str().c_str());
+		tmp.str(std::string());
+		tmp << write_type;
+		add_argin[4] = CORBA::string_dup(tmp.str().c_str());
 		Din << add_argin;
 		itmapnew->second.dp->command_inout("AttributeAdd",Din);
+		if(*attr_SetTTL_read > 0)
+		{
+			Tango::DevVarStringArray ttl_argin;
+			Tango::DeviceData ttl_in;
+			ttl_argin.length(2);
+			ttl_argin[0] = CORBA::string_dup(signame.c_str());
+			tmp.str(std::string());
+			tmp << *attr_SetTTL_read;
+			add_argin[1] = CORBA::string_dup(tmp.str().c_str());
+			ttl_in << ttl_argin;
+			itmapnew->second.dp->command_inout("SetAttributeTTL",ttl_in);
+		}
 	}
 	else
 	{
@@ -2262,13 +2254,13 @@ void HdbConfigurationManager::archiver_add(Tango::DevString argin)
 	archiver_t tmp;
 	try
 	{
-		tmp.dp = new Tango::DeviceProxy(archname);
+		tmp.dp = std::unique_ptr<Tango::DeviceProxy>(new Tango::DeviceProxy(archname));
 	}
 	catch(Tango::DevFailed &e)
 	{
-		tmp.dp = NULL;
+		tmp.dp = std::unique_ptr<Tango::DeviceProxy>(nullptr);
 	}
-	archiverMap.insert(make_pair(archname,tmp));
+	archiverMap.insert(make_pair(archname,std::move(tmp)));
 
 	Tango::DbData	data;
 	data.push_back(Tango::DbDatum("ArchiverList"));
@@ -2342,7 +2334,7 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 
 	bool removed = false;
     
-	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
+	for(auto itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
 	{
 		Tango::DeviceAttribute Dout;
 		try
@@ -2363,7 +2355,7 @@ void HdbConfigurationManager::attribute_assign(const Tango::DevVarStringArray *a
 		{
 			INFO_STREAM << __func__<<": unable to read AttributeList from " << itmap->first;
 			itmap->second.attr_list.clear();
-        }
+        	}
 
 		for(vector<string>::iterator itattr = itmap->second.attr_list.begin(); itattr != itmap->second.attr_list.end(); ++itattr)
 		{
@@ -2659,8 +2651,6 @@ void HdbConfigurationManager::archiver_remove(Tango::DevString argin)
 
 	//remove(archiverList.begin(), archiverList.end(), archname);
 	archiver_list_fix.erase(itlist);
-	if(itmap->second.dp != NULL)
-		delete itmap->second.dp;
 	archiverMap.erase(itmap);
 
 	Tango::DbData	data;
@@ -3232,7 +3222,7 @@ string HdbConfigurationManager::find_archiver(string signame)
 	//DEBUG_STREAM << __func__<< ": entering with " << signame;
 	string archiver("");
 	fix_tango_host(signame);
-	for(archiver_map_t::iterator itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
+	for(auto itmap = archiverMap.begin(); itmap != archiverMap.end(); ++itmap)
 	{
 		Tango::DeviceAttribute Dout;
 		try
