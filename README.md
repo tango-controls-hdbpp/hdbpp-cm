@@ -47,15 +47,6 @@ cmake -DCMAKE_PREFIX_PATH=/non/standard/tango/install/location ../
 
 ### Build Dependencies
 
-Build dependencies:
-
-* libhdbpp version 2 or greater. Not compatible with any version below this.
-
-The build requires the libhdbpp project headers for building and shared library to link against. There is two methods to include this dependency:
-
-* libhdbpp can be installed in either a standard or non-standard location and cmake flags used to locate it.
-* Enabled the custom cmake flag FETCH_LIBHDBPP (see below) and cmake will download the project at configuration time and integrate it directly into the build. This is ideal for testing the project in isolation from a deployed system.
-
 Ensure the development version of the dependencies are installed. These are as follows:
 
 * Tango Controls 9 or higher development headers and libraries
@@ -76,8 +67,6 @@ If wishing to build the project, ensure the following dependencies are met:
 | Flag | Setting | Default | Description |
 |------|-----|-----|-----|
 | ENABLE_CLANG | ON/OFF | OFF | Clang code static analysis and cppcore guideline enforcement |
-| FETCH_LIBHDBPP | ON/OFF | OFF | Download and build against libhdbpp locally |
-| FETCH_LIBHDBPP_TAG | tag/branch | master | When FETCH_LIBHDBPP is enabled, this flag defines the tag/branch to download |
 
 ### Standard CMake Flags
 
