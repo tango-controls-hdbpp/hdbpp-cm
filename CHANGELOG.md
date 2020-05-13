@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2020-05-13
 
 ### Added
 * New CMake build system that can download libhdbpp when requested
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Changed libhdbpp includes to new path (hdb++) and new split header files
 * Project now links directly to given libhdbpp soname major version
 * Made compatible with new libhdbpp (namespace, function and path changes)
-* 
+
 ## [1.0.0] - 2017-09-28
 
 ### Added
