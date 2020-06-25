@@ -39,7 +39,6 @@
 #define HdbConfigurationManager_H
 
 #include <tango.h>
-#include <libhdb++/LibHdb++.h>
 
 #define DEFAULT_TTL		"0"
 
@@ -57,7 +56,7 @@ namespace HdbConfigurationManager_ns
 //	Additional Class Declarations
 typedef struct {
 	vector<string> attr_list;
-	Tango::DeviceProxy *dp;
+	std::unique_ptr<Tango::DeviceProxy> dp;
 } archiver_t;
 
 
@@ -102,7 +101,6 @@ protected:
 
 	Tango::DevLong	original_SetPollingPeriod;
 
-	HdbClient *mdb;
 	static map<string, string> domain_map;
 	timespec last_stat;
 public:
